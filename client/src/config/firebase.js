@@ -2,13 +2,13 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAfe0viRjFRnAHlDmCnkHwUCAgtUC0ythg",
-  authDomain: "billinghabit-v1.firebaseapp.com",
-  projectId: "billinghabit-v1",
-  storageBucket: "billinghabit-v1.firebasestorage.app",
-  messagingSenderId: "1079725882394",
-  appId: "1:1079725882394:web:2af962dbf233ba3dbc65a3",
-  measurementId: "G-80PC1XXLCE"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
