@@ -2,7 +2,7 @@ import React from 'react';
 import { Calculator, IndianRupee } from 'lucide-react';
 
 const QuoteSummary = ({ total, extraFare, discount, onFareChange, onDiscountChange }) => {
-    const finalTotal = (total - (parseFloat(extraFare) || 0) + (parseFloat(discount) || 0));
+    const finalTotal = (total + (parseFloat(extraFare) || 0) - (parseFloat(discount) || 0));
 
     return (
         <div className="mt-4 px-4 space-y-3 pb-8">

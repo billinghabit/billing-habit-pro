@@ -41,9 +41,10 @@ const ProfitModal = ({ isOpen, onClose, items, extraFare, discount }) => {
                 const sellingPrice = item.sellingPrice;
                 const costPrice = costMap[id] || 0;
                 const qty = item.quantity;
-                const totalItemProfit = (sellingPrice - costPrice) * qty;
+                const profitPerPcs = (sellingPrice - costPrice);
+                const totalItemProfit = profitPerPcs * qty;
                 calcTotal += totalItemProfit;
-                return { id, label: item.label || item.productLabel, qty, totalItemProfit };
+                return { id, label: item.label || item.productLabel, qty, profitPerPcs, totalItemProfit };
             });
 
             setTotalProfit(calcTotal - (parseFloat(discount) || 0));
@@ -56,7 +57,7 @@ const ProfitModal = ({ isOpen, onClose, items, extraFare, discount }) => {
     const ThemeIcon = isLoss ? TrendingDown : TrendingUp;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-90 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
                 <div className="p-4 border-b flex justify-between items-center bg-gray-50">
                     <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">{step === 'pin' ? <KeyRound size={20}/> : <ThemeIcon size={20} className={isLoss ? "text-red-600" : "text-green-600"}/>}{step === 'pin' ? 'Security Check' : 'Profit Analysis'}</h2>
@@ -77,11 +78,17 @@ const ProfitModal = ({ isOpen, onClose, items, extraFare, discount }) => {
                             {loadingData ? <div className="py-12 flex justify-center"><Loader2 className="animate-spin text-primaryColor" size={40}/></div> : (
                                 <div className="space-y-4">
                                     <div className="border rounded-lg overflow-hidden">
-                                        <div className="bg-gray-100 px-3 py-2 grid grid-cols-12 text-xs font-semibold text-gray-600"><div className="col-span-6">Item</div><div className="col-span-2 text-center">Qty</div><div className="col-span-4 text-right">Profit</div></div>
+                                        <div className="bg-gray-100 px-3 py-2 grid grid-cols-15 text-xs font-semibold text-gray-600"><div className="col-span-6">Item</div><div className="col-span-2 text-center">Qty</div><div className="col-span-3 text-center">Profit</div><div className="col-span-4 text-right">Total</div></div>
                                         <div className="divide-y max-h-[40vh] overflow-auto">
-                                            {profitItems.map(item => (<div key={item.id} className="px-3 py-2 grid grid-cols-12 text-sm items-center"><div className="col-span-6 font-medium truncate">{item.label}</div><div className="col-span-2 text-center text-gray-500">{item.qty}</div><div className={`col-span-4 text-right font-bold ${item.totalItemProfit < 0 ? 'text-red-500' : 'text-green-600'}`}>{item.totalItemProfit < 0 ? '-' : ''}₹{Math.abs(item.totalItemProfit).toFixed(0)}</div></div>))}
+                                            {profitItems.map(item => (<div key={item.id} className="px-3 py-2 grid grid-cols-15 text-sm items-center"><div className="col-span-6 font-medium truncate">{item.label}</div><div className="col-span-2 text-center text-gray-500">{item.qty}</div><div className="col-span-3 text-center text-gray-500">{item.profitPerPcs}</div><div className={`col-span-4 text-right font-bold ${item.totalItemProfit < 0 ? 'text-red-500' : 'text-green-600'}`}>{item.totalItemProfit < 0 ? '-' : ''}₹{Math.abs(item.totalItemProfit).toFixed(0)}</div></div>))}
                                         </div>
                                     </div>
+                                    {discount>0 && (
+                                    <div className="px-5 flex justify-between items-center ">
+                                        <div><p className="text-xs font-bold uppercase text-yellow-700">Discount</p></div>
+                                        <div className="text-xs font-black text-yellow-700">- ₹{discount}</div>
+                                    </div>
+                                    )}
                                     <div className={`p-4 rounded-xl border flex justify-between items-center ${isLoss ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
                                         <div><p className={`text-xs font-bold uppercase ${isLoss ? 'text-red-600' : 'text-green-600'}`}>{isLoss ? 'Net Loss' : 'Net Profit'}</p></div>
                                         <div className={`text-3xl font-black ${isLoss ? 'text-red-700' : 'text-green-700'}`}>₹{totalProfit.toFixed(0)}</div>
