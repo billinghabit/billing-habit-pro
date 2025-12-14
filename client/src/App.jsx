@@ -44,17 +44,18 @@ const RootRedirect = () => {
 
   if (loading) return null;
 
-  // 🌐 Web browser
-  if (!isPWA()) {
-    return <Navigate to="/landing-page" replace />;
+  // 1. If the app IS a PWA (standalone mode), send them directly to the app dashboard.
+  if (isPWA()) {
+    return <Navigate to={user ? "/home" : "/login"} replace />;
+  }
+  
+  // 2. If the app is NOT a PWA, check if the user is already logged in.
+  if (user) {
+      return <Navigate to="/home" replace />;
   }
 
-  // 📱 Installed PWA
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <Navigate to="/home" replace />;
+  // 3. If a regular web user and NOT logged in, show the landing page.
+  return <Navigate to="/landing-page" replace />;
 };
 
 /* ------------------- App ------------------- */
@@ -70,8 +71,8 @@ const App = () => {
         <Route path="/" element={<RootRedirect />} />
 
         {/* Public */}
+        <Route path="/landing-page" element={<LandingPage />} /> 
         <Route path="/login" element={!user ? (<Login onLoginSuccess={setUser} />) : (<Navigate to="/home" replace />)}/>
-        <Route path="/landing-page" element={<LandingPage />} />
 
         {/* Protected */}
         <Route path="/home" element={<ProtectedRoute element={<Home />} />} />

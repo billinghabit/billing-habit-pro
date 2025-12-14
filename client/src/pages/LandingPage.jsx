@@ -22,13 +22,6 @@ const LandingPage = () => {
   const [installStatus, setInstallStatus] = useState('idle');
   const [progress, setProgress] = useState(0);
 
-  /* ------------------- PWA Guard ------------------- */
-  useEffect(() => {
-    // 🚫 Never allow landing page inside installed PWA
-    if (isPWA()) {
-      navigate(user ? '/home' : '/login', { replace: true });
-    }
-  }, [navigate, user]);
 
   /* ------------------- Install Prompt Listener ------------------- */
   useEffect(() => {
@@ -70,9 +63,7 @@ const LandingPage = () => {
   /* ------------------- Install Button Click ------------------- */
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
-      alert(
-        'Installation is handled via browser menu or not supported on this device.'
-      );
+      setInstallStatus('alert-no-support'); 
       return;
     }
 
@@ -183,6 +174,26 @@ const LandingPage = () => {
           </div>
         )}
       </div>
+      {/* Alert Modal for No Install Support */}
+      {installStatus === 'alert-no-support' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-xs p-6 text-center">
+            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4 text-yellow-600">
+              <Zap size={28} />
+            </div>
+            <h3 className="text-lg font-bold mb-2">Browser Restriction</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Please use your browser's menu (usually 3 dots) to select "Add to Home Screen" or "Install App".
+            </p>
+            <button 
+                onClick={() => setInstallStatus('idle')} 
+                className="w-full py-2.5 bg-primaryColor rounded-xl font-bold text-white hover:bg-green-700"
+            >
+                Understood
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
