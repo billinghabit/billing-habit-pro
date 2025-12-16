@@ -19,16 +19,48 @@ const loadRazorpayScript = () => {
 };
 
 const PlanCard = ({ title, price, duration, planId, features, onBuy, loading, icon: Icon, isPopular, saveText }) => (
-    <div className={`relative overflow-hidden rounded-3xl border transition-all duration-300 transform ${isPopular ? 'border-amber-400 bg-linear-to-b from-amber-50 to-white shadow-xl scale-[1.02] z-10' : 'border-gray-200 bg-white shadow-md hover:shadow-lg'}`}>
-        {isPopular && <div className="absolute top-0 right-0"><div className="bg-amber-400 text-amber-950 text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm">BEST VALUE</div></div>}
+    <div className={`relative overflow-hidden rounded-3xl border transition-all duration-300 transform shadow-lg ${isPopular ? 'border-amber-500 bg-white ring-4 ring-amber-100 scale-[1.02] z-10' : 'border-gray-200 bg-white hover:shadow-xl'}`}>
+        {isPopular && 
+            <div className="absolute top-0 right-0">
+                <div className="bg-amber-500 text-white text-[10px] font-bold px-4 py-1.5 rounded-bl-xl shadow-md flex items-center gap-1">
+                    <Crown size={12} className="fill-white"/> BEST VALUE
+                </div>
+            </div>
+        }
         <div className="p-6">
             <div className="flex justify-between items-start mb-4">
-                <div className={`p-3 rounded-2xl ${isPopular ? 'bg-amber-100 text-amber-600' : 'bg-green-50 text-primaryColor'}`}><Icon size={28} strokeWidth={isPopular ? 2.5 : 2} /></div>
-                {saveText && <span className="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full">{saveText}</span>}
+                <div className={`p-3 rounded-2xl ${isPopular ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-900'}`}>
+                    <Icon size={28} strokeWidth={isPopular ? 2.5 : 2} />
+                </div>
+                {saveText && <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full border border-emerald-200">{saveText}</span>}
             </div>
-            <div className="mb-6"><h3 className={`text-lg font-bold ${isPopular ? 'text-gray-900' : 'text-gray-700'}`}>{title} Plan</h3><div className="flex items-baseline mt-1"><span className="text-4xl font-black text-gray-900">₹{price}</span><span className="text-gray-500 font-medium ml-1">/{duration}</span></div></div>
-            <ul className="space-y-3.5 mb-8">{features.map((feature, i) => (<li key={i} className="flex items-start gap-3 text-sm text-gray-600 font-medium"><div className={`mt-0.5 rounded-full p-0.5 ${isPopular ? 'bg-amber-200 text-amber-800' : 'bg-green-100 text-green-700'}`}><Check size={12} strokeWidth={3} /></div><span className="leading-snug">{feature}</span></li>))}</ul>
-            <button onClick={() => onBuy(planId)} disabled={loading} className={`w-full py-4 rounded-xl font-bold text-base shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${isPopular ? 'bg-linear-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600' : 'bg-gray-900 text-white hover:bg-gray-800'}`}>{loading ? <Loader2 className="animate-spin" size={20}/> : (isPopular ? "Get Premium" : "Choose Monthly")}</button>
+            
+            <div className="mb-6">
+                <h3 className={`text-lg font-bold ${isPopular ? 'text-gray-900' : 'text-gray-700'}`}>{title} Plan</h3>
+                <div className="flex items-baseline mt-1 gap-1">
+                    <span className="text-4xl font-black text-slate-900 tracking-tight">₹{price}</span>
+                    <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md uppercase tracking-wide">{duration}</span>
+                </div>
+            </div>
+            
+            <ul className="space-y-3.5 mb-8">
+                {features.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-gray-700 font-medium">
+                        <div className={`mt-0.5 rounded-full p-0.5 ${isPopular ? 'bg-amber-200 text-amber-800' : 'bg-blue-100 text-blue-700'}`}>
+                            <Check size={12} strokeWidth={3} />
+                        </div>
+                        <span className="leading-snug">{feature}</span>
+                    </li>
+                ))}
+            </ul>
+            
+            <button 
+                onClick={() => onBuy(planId)} 
+                disabled={loading} 
+                className={`w-full py-4 rounded-xl font-bold text-base shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${isPopular ? 'bg-linear-to-r from-amber-500 to-amber-600 text-white shadow-amber-400/50 hover:from-amber-600' : 'bg-slate-900 text-white shadow-slate-900/30 hover:bg-slate-800'}`}
+            >
+                {loading ? <Loader2 className="animate-spin" size={20}/> : (isPopular ? "Get Premium" : "Choose Monthly")}
+            </button>
         </div>
     </div>
 );
@@ -61,7 +93,7 @@ const Subscription = () => {
                         else { toast.error("Verification failed"); }
                     } catch (err) { toast.error("Verification error"); }
                 },
-                theme: { color: "#047857" }, 
+                theme: { color: "#1e3a8a" }, // Updated to Dark Blue (Blue-900)
                 modal: { ondismiss: () => setLoading(false) }
             };
             const rzp = new window.Razorpay(options);
@@ -72,14 +104,58 @@ const Subscription = () => {
     return (
         <div className="bg-gray-50 min-h-screen pb-32">
             <Header />
-            <div className="relative bg-primaryColor px-4 pt-8 pb-12 rounded-b-[3rem] shadow-sm mb-6 text-center overflow-hidden">
+            
+            {/* Header Section with Dark Gradient */}
+            <div className="relative bg-linear-to-r from-blue-900 to-indigo-900 px-4 pt-8 pb-16 rounded-b-[3rem] shadow-xl mb-6 text-center overflow-hidden">
+                {/* Decorative Background Element */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-white/10 rounded-full blur-3xl -mt-10 pointer-events-none"></div>
-                <div className="relative z-10"><div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-white text-xs font-bold mb-4 border border-white/20"><Crown size={14} className="text-amber-300 fill-amber-300" /> PRO EDITION</div><h1 className="text-3xl font-black text-white mb-2 tracking-tight">Upgrade Your Shop</h1><p className="text-green-100 text-sm max-w-xs mx-auto leading-relaxed">Remove limits, track profits, and grow your business faster.</p></div>
+                
+                <div className="relative z-10">
+                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-white text-xs font-bold mb-4 border border-white/20 shadow-sm">
+                        <Crown size={14} className="text-amber-300 fill-amber-300" /> PRO EDITION
+                    </div>
+                    <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Upgrade Your Shop</h1>
+                    <p className="text-blue-100 text-sm max-w-xs mx-auto leading-relaxed opacity-90">Remove limits, unlock analytics, and grow your business.</p>
+                </div>
             </div>
-            <div className="max-w-lg mx-auto px-4 -mt-8 space-y-6">
-                <PlanCard title="Yearly" price="999" duration="year" planId="yearly" icon={Crown} isPopular={true} saveText="SAVE ₹1400" features={['Everything in Monthly', '2 Months Free Included', 'Exclusive Gold App Badge', 'Early Access to New Features']} onBuy={handlePurchase} loading={loading} />
-                <PlanCard title="Monthly" price="199" duration="mo" planId="monthly" icon={Zap} isPopular={false} features={['Create Unlimited Quotations', 'Unlock Profit Analysis', 'Remove "Free Plan" Watermark', 'Priority Chat Support']} onBuy={handlePurchase} loading={loading} />
-                <div className="flex flex-col items-center gap-2 pt-4"><div className="flex items-center gap-2 text-gray-400 text-xs font-medium"><ShieldCheck size={14} /><span>Secured by Razorpay</span><span className="w-1 h-1 bg-gray-300 rounded-full"></span><span>Cancel Anytime</span></div></div>
+            
+            {/* Plan Cards Container */}
+            <div className="max-w-lg mx-auto px-4 -mt-12 space-y-6">
+                
+                <PlanCard 
+                    title="Yearly" 
+                    price="999" 
+                    duration="valid for 1 year" 
+                    planId="yearly" 
+                    icon={Crown} 
+                    isPopular={true} 
+                    saveText="SAVE ₹1400" 
+                    features={['Everything in Monthly', 'Exclusive Gold App Badge', 'Priority Support']} 
+                    onBuy={handlePurchase} 
+                    loading={loading} 
+                />
+                
+                <PlanCard 
+                    title="Monthly" 
+                    price="199" 
+                    duration="valid for 1 month" 
+                    planId="monthly" 
+                    icon={Zap} 
+                    isPopular={false} 
+                    features={['Create Unlimited Quotations', 'Unlock Profit Analysis', 'Standard Support']} 
+                    onBuy={handlePurchase} 
+                    loading={loading} 
+                />
+                
+                {/* Trust Indicators */}
+                <div className="flex flex-col items-center gap-2 pt-4">
+                    <div className="flex items-center gap-2 text-gray-400 text-xs font-medium">
+                        <ShieldCheck size={14} />
+                        <span>Secured by Razorpay</span>
+                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                        <span>No Auto-Debit</span>
+                    </div>
+                </div>
             </div>
             <Footer />
         </div>

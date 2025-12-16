@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { User, MapPin, Phone, EyeOff, Download, Briefcase, ChevronDown, Save } from 'lucide-react';
+import { User, MapPin, Phone, Loader2, EyeOff, Download, Briefcase, ChevronDown, Save, FileText } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext.jsx';
 import toast from 'react-hot-toast';
 
 // Layout & Common Components
-import Navbar from '../../components/layout/Navbar.jsx';
+import Navbar from '../../components/layout/Navbar.jsx'; // Replaced Header
 import ProfitModal from '../../components/modals/ProfitModal.jsx';
-import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
+import CustomerInfo from "../../components/common/CustomerInfo.jsx";
 
 // Quote Specific Components
 import QuoteItemRow from '../../components/quote/QuoteItemRow.jsx'; 
@@ -27,13 +27,17 @@ const QuoteDetails = () => {
     
     const [quote, setQuote] = useState(null); 
     const [quoteItems, setQuoteItems] = useState([]); 
-    const [total, setTotal] = useState(0); // This is the Grand Total (after fare/discount)
+    const [total, setTotal] = useState(0); 
     const [extraFare, setExtraFare] = useState('');
     const [discount, setDiscount] = useState('');
     const [status, setStatus] = useState('Pending');
+    const [isWholesale, setIsWholesale] = useState(false); // Added State
 
     const [editingId, setEditingId] = useState(null);
     const [isProfitModalOpen, setIsProfitModalOpen] = useState(false);
+
+    // --- Theme Accents ---
+    const primaryAccentBg = 'bg-slate-900';
 
     // --- 1. Data Fetching ---
     useEffect(() => {
@@ -51,8 +55,9 @@ const QuoteDetails = () => {
                 setExtraFare(savedQuote.extraFare || '');
                 setDiscount(savedQuote.discount || '');
                 setStatus(savedQuote.status || 'Pending');
+                setIsWholesale(savedQuote.quoteType === 'Wholesale'); // Initialize Mode
 
-                // Load Master Data (for "Modified" check and Unit fallback)
+                // Load Master Data
                 const productIds = savedQuote.items.map(i => i.product);
                 const resProducts = await axios.post('/product/get-details-for-list', { productIds });
                 
@@ -76,7 +81,6 @@ const QuoteDetails = () => {
                         label: item.productLabel,
                         quantity: item.quantity,
                         sellingPrice: item.sellingPrice,
-                        // Unit Priority: Saved > Master > Default
                         unit: item.unit || masterInfo.unit || 'pcs',
                         
                         masterRetail: masterInfo.retail,
@@ -87,7 +91,7 @@ const QuoteDetails = () => {
                 });
 
                 setQuoteItems(mergedItems);
-                setTotal(savedQuote.totalAmount); // Use the saved final total
+                setTotal(savedQuote.totalAmount); 
 
             } catch (error) {
                 console.error(error);
@@ -107,6 +111,24 @@ const QuoteDetails = () => {
     };
 
     // --- 3. Handlers ---
+    
+    // Toggle Wholesale Mode (Updates Prices & State)
+    const toggleWholesaleMode = () => {
+        const newMode = !isWholesale;
+        setIsWholesale(newMode);
+        
+        setQuoteItems((prev) => {
+            const updated = prev.map((item) => {
+                // Switch between Master Wholesale and Master Retail
+                const newPrice = newMode ? item.masterWholesale : item.masterRetail;
+                return { ...item, sellingPrice: newPrice, total: newPrice * item.quantity };
+            });
+            setTotal(recalculateTotal(updated, extraFare, discount));
+            return updated;
+        });
+        toast.success(newMode ? "Wholesale Prices Applied" : "Retail Prices Applied");
+    };
+
     const handleUpdateItem = (id, field, value) => {
         const numValue = parseFloat(value) || 0;
         setQuoteItems(prev => {
@@ -118,7 +140,6 @@ const QuoteDetails = () => {
                 }
                 return item;
             });
-            // Recalculate Grand Total based on new item data
             setTotal(recalculateTotal(updated, extraFare, discount));
             return updated;
         });
@@ -145,11 +166,11 @@ const QuoteDetails = () => {
             await axios.put(`/quote/update/${quoteId}`, {
                 itemsList,
                 extraFare: parseFloat(extraFare) || 0,
-                discount: parseFloat(discount) || 0
+                discount: parseFloat(discount) || 0,
+                quoteType: isWholesale ? "Wholesale" : "Retail" // Save the mode
             });
 
             toast.success("Changes Saved!");
-            // Re-sync local total after saving
             setTotal(recalculateTotal(quoteItems, extraFare, discount));
         } catch (error) {
             toast.error("Error updating quote");
@@ -163,99 +184,154 @@ const QuoteDetails = () => {
         generatePDF('invoice-content', fileName);
     };
 
-    if (loading || !quote) return <><Navbar title="Loading..." /><LoadingSpinner /></>;
+    // Skeleton Loader
+    const InvoiceSkeleton = () => (
+        <div className="mx-3 my-2 bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 animate-pulse">
+            <div className="p-4 border-b border-gray-100 flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-200 rounded-xl"></div>
+                <div className="flex-1">
+                    <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+                    <div className="h-3 bg-gray-100 rounded w-1/2"></div>
+                </div>
+            </div>
+            <div className="h-8 bg-gray-50 w-full mb-1"></div>
+            <div className="p-4 space-y-4">
+                {[1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className="flex justify-between items-center">
+                        <div className="space-y-2 w-1/2">
+                            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                            <div className="h-3 bg-gray-100 rounded w-1/4"></div>
+                        </div>
+                        <div className="h-5 bg-gray-200 rounded w-16"></div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
 
-    // Use quote's saved type to control "Modified" tag logic
-    const isQuoteWholesale = quote.quoteType === 'Wholesale';
+    if (loading || !quote) return (
+        <div className="bg-gray-100 min-h-screen">
+            <Navbar title="Loading..." />
+            <div className="pt-2"><InvoiceSkeleton /></div>
+        </div>
+    );
+
     const currentStatusColor = STATUS_COLORS[status] || STATUS_COLORS.Default;
 
     return (
-        <div className="pb-64 bg-gray-50 min-h-screen">
+        <div className="min-h-screen flex flex-col bg-gray-100">
+            {/* Replaced Header with Navbar */}
             <Navbar title={`Quote #${quote._id.substring(quote._id.length - 6)}`} />
 
-            {/* Fixed Action Buttons */}
-            <div className="absolute top-0 right-0 z-60 h-14 flex items-center pr-2 gap-1 no-print">
-                <button onClick={() => setIsProfitModalOpen(true)} className="p-2 text-white/90 hover:bg-white/10 rounded-full"><EyeOff size={22} /></button>
-                <button onClick={handleDownload} className="p-2 text-white/90 hover:bg-white/10 rounded-full"><Download size={22} /></button>
+            {/* 1. Sticky Toolbar (Actions) */}
+            <div className="sticky top-14 z-20 bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between shadow-sm no-print">
+                 
+                 {/* Left: Wholesale Toggle (Replaces Quote ID) */}
+                 <label className="inline-flex items-center cursor-pointer group">
+                    <input type="checkbox" checked={isWholesale} onChange={toggleWholesaleMode} className="sr-only peer" />
+                    <div className={`relative w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all ${isWholesale ? 'peer-checked:bg-slate-900' : ''}`}></div>
+                    <span className={`ml-2 text-xs font-bold transition-colors flex items-center gap-1 ${isWholesale ? 'text-slate-900' : 'text-gray-500'}`}>
+                      <Briefcase size={14} /> Wholesale
+                    </span>
+                 </label>
+
+                 {/* Right Actions */}
+                 <div className="flex gap-2">
+                    <button onClick={() => setIsProfitModalOpen(true)} className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                        <EyeOff size={14} /> Profit
+                    </button>
+                    <button onClick={handleDownload} className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-blue-900 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                        <Download size={14} /> PDF
+                    </button>
+                 </div>
             </div>
 
-            <div id="invoice-content" className="bg-white min-h-screen">
-                
-                {/* Header & Status */}
-                <div className="bg-white border-b border-gray-200 p-4 shadow-sm mb-2 relative">
-                    {/* Status Dropdown (No Print) */}
-                    <div className="absolute top-4 right-4 z-10 no-print">
-                        <div className={`relative flex items-center px-2 py-1 rounded-md border ${currentStatusColor}`}>
-                            <select value={status} onChange={handleStatusChange} className="appearance-none bg-transparent font-bold text-xs pr-4 focus:outline-none cursor-pointer">
-                                <option value="Pending">Pending</option>
-                                <option value="Delivered">Delivered</option>
-                                <option value="Cancelled">Cancelled</option>
-                            </select>
-                            <ChevronDown size={14} className="absolute right-1 pointer-events-none"/>
-                        </div>
-                    </div>
-                    {/* Status Display (Print Only) */}
-                    <div className={`hidden print:block absolute top-4 right-4 text-xs font-bold border px-2 py-1 rounded ${currentStatusColor}`}>{status}</div>
-
-                    <div className="flex items-start gap-3">
-                        <div className="h-10 w-10 mt-1 rounded-full bg-green-50 flex items-center justify-center border border-green-100 shrink-0"><User className="text-primaryColor" size={20} /></div>
-                        <div className="flex-1 min-w-0 pr-20">
-                            <div className="flex items-center gap-2">
-                                <h3 className="text-lg font-bold text-gray-800 leading-tight">{quote.customer?.name}</h3>
-                                {isQuoteWholesale && <span className="bg-purple-100 text-purple-700 text-[9px] font-bold px-1.5 py-0.5 rounded border border-purple-200 flex items-center gap-0.5"><Briefcase size={8} /> Wholesale</span>}
-                            </div>
-                            <div className="flex flex-col gap-1 mt-1 text-sm text-gray-600">
-                                {quote.customer?.number && <span className="flex items-center gap-1.5"><Phone size={14}/> {quote.customer.number}</span>}
-                                {quote.customer?.address && <span className="flex items-start gap-1.5 leading-snug"><MapPin size={14} className="mt-0.5"/> <span>{quote.customer.address}</span></span>}
+            {/* Main Scrollable Content */}
+            <div className="flex-1 pb-24 overflow-y-auto">
+                <div id="invoice-content" className="min-h-[500px] mx-auto max-w-3xl shadow-sm my-2 bg-white rounded-xl overflow-hidden border border-gray-100">
+                    
+                    {/* Customer Header Container with Status Overlay */}
+                    <div className="relative">
+                        {/* Status Dropdown (Top Right Absolute) */}
+                        <div className="absolute top-3 right-3 z-20 no-print">
+                            <div className={`relative flex items-center px-2 py-1 rounded-lg border shadow-sm transition-all hover:shadow-md bg-white ${currentStatusColor}`}>
+                                <select value={status} onChange={handleStatusChange} className="appearance-none bg-transparent font-bold text-[10px] uppercase tracking-wider pr-4 focus:outline-none cursor-pointer">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Delivered">Delivered</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                                <ChevronDown size={12} className="absolute right-1 pointer-events-none opacity-50"/>
                             </div>
                         </div>
+
+                        {/* Status Display (Print Only) */}
+                        <div className={`hidden print:block absolute top-3 right-3 text-[10px] font-bold border px-2 py-1 rounded uppercase tracking-wider ${currentStatusColor}`}>
+                            {status}
+                        </div>
+
+                        {/* Reusing CustomerInfo Component */}
+                        <CustomerInfo selectedCustomer={quote.customer || {}} />
                     </div>
-                </div>
 
-                {/* List Header */}
-                <div className="bg-gray-100 border-y border-gray-200 text-xs font-bold text-gray-600 uppercase tracking-wider grid grid-cols-12 gap-2 px-3 py-2 shadow-sm">
-                    <div className="col-span-5">Item</div>
-                    <div className="col-span-2 text-center">Qty</div>
-                    <div className="col-span-2 text-right">Price</div>
-                    <div className="col-span-3 text-right">Total</div>
-                </div>
+                    {/* Table Headers */}
+                    <div className="border-y border-gray-200 text-[10px] font-bold text-white uppercase tracking-widest grid grid-cols-15 gap-1 px-3 py-2 bg-slate-800">
+                        <div className="col-span-6 pl-1">Item Details</div>
+                        <div className="col-span-2 text-center">Qty</div>
+                        <div className="col-span-3 text-right">Rate</div>
+                        <div className="col-span-4 text-right pr-1">Amount</div>
+                    </div>
 
-                {/* Items List */}
-                <div className="bg-white divide-y divide-gray-100">
-                    {quoteItems.map((item) => (
-                        <QuoteItemRow
-                            key={item._id}
-                            item={{ 
-                                // Map master prices to use in the QuoteItemRow component
-                                ...item, 
-                                retailPrice: item.masterRetail,
-                                wholesalePrice: item.masterWholesale
-                            }}
-                            isEditing={editingId === item._id}
-                            onEditClick={setEditingId}
-                            onUpdate={handleUpdateItem}
-                            isWholesaleMode={isQuoteWholesale} 
-                        />
-                    ))}
-                </div>
+                    {/* Items List */}
+                    <div className="bg-white divide-y divide-gray-50">
+                        {quoteItems.length === 0 ? (
+                            <div className="py-10 text-center text-gray-400 flex flex-col items-center">
+                                <FileText size={32} className="opacity-20 mb-2"/>
+                                <span className="text-sm">No items in this quote</span>
+                            </div>
+                        ) : (
+                            quoteItems.map((item) => (
+                                <QuoteItemRow
+                                    key={item._id}
+                                    item={{ 
+                                        ...item, 
+                                        retailPrice: item.masterRetail,
+                                        wholesalePrice: item.masterWholesale
+                                    }}
+                                    isEditing={editingId === item._id}
+                                    onEditClick={setEditingId}
+                                    onUpdate={handleUpdateItem}
+                                    isWholesaleMode={isWholesale} 
+                                />
+                            ))
+                        )}
+                    </div>
 
-                {/* Summary */}
-                <QuoteSummary 
-                    total={recalculateTotal(quoteItems, extraFare, discount)} // Pass subtotal before charges
-                    extraFare={extraFare}
-                    discount={discount}
-                    // Handlers update state and recalculate the grand total
-                    onFareChange={(val) => { setExtraFare(val); setTotal(recalculateTotal(quoteItems, val, discount)); }}
-                    onDiscountChange={(val) => { setDiscount(val); setTotal(recalculateTotal(quoteItems, extraFare, val)); }}
-                />
+                    {/* Summary */}
+                    <QuoteSummary 
+                        total={recalculateTotal(quoteItems, extraFare, discount)} 
+                        extraFare={extraFare}
+                        discount={discount}
+                        onFareChange={(val) => { setExtraFare(val); setTotal(recalculateTotal(quoteItems, val, discount)); }}
+                        onDiscountChange={(val) => { setDiscount(val); setTotal(recalculateTotal(quoteItems, extraFare, val)); }}
+                    />
+                </div>
             </div>
 
-            {/* Footer - Save Changes */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white shadow-inner border-t-2 z-10 p-4 safe-area-pb">
+            {/* Sticky Bottom Save Bar */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.08)] border-t border-gray-100 z-30 px-5 pb-6 pt-4 rounded-t-3xl safe-area-pb">
                 <div className="max-w-md mx-auto">
-                    <button onClick={handleUpdateQuote} disabled={isSaving} className="no-print w-full py-3.5 rounded-xl text-white font-bold text-lg flex items-center justify-center gap-2 bg-primaryColor hover:bg-green-700 disabled:bg-gray-300">
-                        {isSaving ? <LoadingSpinner size={22} color="text-white" /> : <Save size={20} />}
-                        Save Changes
+                    <button 
+                        onClick={handleUpdateQuote} 
+                        disabled={isSaving} 
+                        className={`no-print w-full py-3.5 rounded-xl text-white font-bold text-lg flex items-center justify-center gap-2 ${primaryAccentBg} shadow-lg shadow-slate-900/20 hover:bg-slate-800 disabled:bg-gray-300 disabled:shadow-none transition-all active:scale-[0.98]`}
+                    >
+                        {isSaving ? (
+                            <div className="animate-spin"><Loader2 size={24} /></div>
+                        ) : (
+                            <>
+                                <Save size={20} /> Save Changes
+                            </>
+                        )}
                     </button>
                 </div>
             </div>

@@ -2,9 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext.jsx';
 import toast from 'react-hot-toast';
-import { SquarePlus, X, Loader2, Circle, CircleCheckBig, Search, Settings, Edit2, Trash2, Box, AlertTriangle, ChevronRight } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar.jsx'; 
+import { SquarePlus, X, Loader2, CircleCheckBig, Search, Settings, Edit2, Trash2, Box, AlertTriangle, ChevronRight, Circle } from 'lucide-react';
+import Header from '../../components/layout/Header.jsx'; // Replaced Navbar with Header
 import BottomNav from '../../components/layout/BottomNav.jsx';
+import Navbar from '../../components/layout/Navbar.jsx';
 
 const SubCategory = () => {
     const { categoryId } = useParams();
@@ -13,7 +14,7 @@ const SubCategory = () => {
     const [categoryName, setCategoryName] = useState(''); 
     const [subCategories, setSubCategories] = useState([]); 
     const [searchTerm, setSearchTerm] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true); // Default true for initial load
     const [isManageMode, setIsManageMode] = useState(false);
     
     // Modals
@@ -25,9 +26,14 @@ const SubCategory = () => {
     const [newSubCategoryName, setNewSubCategoryName] = useState('');
     const [isCreating, setIsCreating] = useState(false);
 
+    // --- Theme Accents ---
+    const primaryAccentBg = 'bg-slate-900';
+    const primaryAccentRing = 'focus:ring-slate-900/30';
+    const primaryAccentBgLight = 'bg-slate-100';
+
     useEffect(() => {
         const fetchData = async () => {
-            setLoading(true);
+            // Note: Keep loading true initially
             try {
                 const catRes = await axios.get(`/category/get/${categoryId}`);
                 if (catRes.data.success) setCategoryName(catRes.data.category.name);
@@ -79,66 +85,143 @@ const SubCategory = () => {
         finally { setIsCreating(false); setDeleteId(null); }
     };
 
-    if (loading) return <><Navbar title="Loading..." /><div className='flex justify-center items-center h-64'><Loader2 className="animate-spin text-primaryColor" size={40} /></div></>;
+    // --- Skeleton Loader ---
+    const SubCategorySkeleton = () => (
+        <div className='grid grid-cols-2 gap-3 px-4 py-2 animate-pulse'>
+            {[1, 2, 3, 4].map(i => (
+                <div key={i} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 h-36">
+                    <div className="bg-gray-200 p-2.5 rounded-full mb-3 w-10 h-10"></div>
+                    <div className="bg-gray-200 h-4 w-3/4 rounded mb-2"></div>
+                    <div className="bg-gray-100 h-4 w-1/2 rounded"></div>
+                </div>
+            ))}
+        </div>
+    );
 
     return (
         <div className='pb-24 bg-gray-50 min-h-screen'>
-            <Navbar title={categoryName || "Sub-Categories"} />
-            <div className="sticky top-14 z-10 px-4 pt-4 pb-2 bg-gray-50/95 backdrop-blur-sm">
+            <Navbar title={categoryName || "Loading..."} />
+            
+            {/* Sticky Filter Bar */}
+            <div className="sticky top-[72px] z-10 px-4 pt-1 mb-6 pb-3 bg-gray-50/95 backdrop-blur-sm ">
                 <div className="flex gap-2">
-                    <div className="relative flex-1 shadow-sm">
-                        <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-3 pl-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primaryColor/50" />
+                    <div className="relative flex-1">
+                        <input 
+                            type="text" 
+                            placeholder="Search sub-categories..." 
+                            value={searchTerm} 
+                            onChange={(e) => setSearchTerm(e.target.value)} 
+                            className="w-full p-3 pl-12 rounded-2xl border border-gray-200 shadow-lg focus:ring-4 focus:ring-slate-900/30 text-gray-800 font-medium placeholder-gray-400 outline-none transition-all" 
+                        />
                         <Search className="absolute left-3 top-3.5 text-gray-400" size={20} />
                     </div>
-                    <button onClick={() => setIsManageMode(!isManageMode)} className={`p-3 rounded-xl border transition-all ${isManageMode ? 'bg-primaryColor text-white shadow-lg' : 'bg-white text-gray-500'}`}><Settings size={22} /></button>
+                    <button 
+                        onClick={() => setIsManageMode(!isManageMode)} 
+                        className={`p-3 rounded-xl border transition-all active:scale-95 ${isManageMode ? `${primaryAccentBg} text-white shadow-lg` : 'bg-white text-gray-500 border-gray-300 hover:bg-gray-100'}`}
+                    >
+                        <Settings size={22} />
+                    </button>
                 </div>
             </div>
             
-            <div className='grid grid-cols-2 gap-3 px-4 py-2'>
-                {filteredSubCategories.map((row) => {
-                    const isFilled = filledSubCategoryIds.has(row._id);
-                    return (
-                        <div key={row._id} onClick={() => !isManageMode && navigate(`/products/${row._id}`)} className={`bg-white p-4 rounded-2xl shadow-sm border transition-all flex flex-col justify-between h-36 relative overflow-hidden group ${isManageMode ? 'border-primaryColor/30' : 'border-gray-100 active:scale-[0.96] cursor-pointer'}`}>
-                            <div className="absolute -right-6 -top-6 w-20 h-20 bg-green-50 rounded-full group-hover:scale-150 transition-transform duration-500 ease-out"></div>
-                            <div className="relative z-10 flex-1 flex flex-col items-start justify-center">
-                                <div className={`p-2.5 rounded-full mb-3 ${isFilled ? 'bg-green-100 text-green-600' : 'bg-gray-50 text-primaryColor'}`}>{isFilled ? <CircleCheckBig size={20} /> : <Box size={20} />}</div>
-                                <h3 className="font-bold text-gray-800 leading-snug line-clamp-2 text-[14px]">{row.name}</h3>
-                            </div>
-                            <div className="relative z-10 flex justify-between items-end mt-2 w-full">
-                                {isManageMode ? (
-                                    <div className="flex gap-2 w-full animate-in fade-in zoom-in duration-200">
-                                        <button onClick={(e) => { e.stopPropagation(); setEditingSub(row); setNewSubCategoryName(row.name); setIsModalOpen(true); }} className="flex-1 bg-blue-50 text-blue-600 p-1.5 rounded-lg flex justify-center"><Edit2 size={16}/></button>
-                                        <button onClick={(e) => { e.stopPropagation(); setDeleteId(row._id); setIsDeleteModalOpen(true); }} className="flex-1 bg-red-50 text-red-600 p-1.5 rounded-lg flex justify-center"><Trash2 size={16}/></button>
+            {/* Main Content Area */}
+            {loading ? (
+                <SubCategorySkeleton />
+            ) : (
+                <div className='grid grid-cols-2 gap-3 px-4 py-2'>
+                    {filteredSubCategories.map((row) => {
+                        const isFilled = filledSubCategoryIds.has(row._id);
+                        return (
+                            <div 
+                                key={row._id} 
+                                onClick={() => !isManageMode && navigate(`/products/${row._id}`)} 
+                                className={`bg-white p-4 rounded-2xl shadow-md border transition-all duration-200 flex flex-col justify-between h-36 relative overflow-hidden group ${isManageMode ? 'ring-2 ring-slate-300' : 'border-gray-100 active:scale-[0.97] cursor-pointer hover:shadow-lg'}`}
+                            >
+                                {/* Decorative Glow */}
+                                <div className={`absolute -right-6 -top-6 w-20 h-20 ${primaryAccentBgLight} rounded-full group-hover:scale-150 transition-transform duration-500 ease-out`}></div>
+                                
+                                <div className="relative z-10 flex-1 flex flex-col items-start justify-center">
+                                    <div className={`p-2.5 rounded-full mb-3 shadow-inner ${isFilled ? 'bg-blue-100 text-blue-900' : 'bg-blue-50 text-blue-00'}`}>
+                                        {isFilled ? <CircleCheckBig size={20} /> : <Circle size={20} />}
                                     </div>
-                                ) : ( <><span className="text-[10px] text-gray-400 font-bold uppercase">Select</span><div className="bg-gray-50 p-1 rounded-full text-gray-400 group-hover:bg-primaryColor group-hover:text-white"><ChevronRight size={14} strokeWidth={3}/></div></> )}
+                                    <h3 className="font-bold text-gray-800 leading-snug line-clamp-2 text-[14px]">{row.name}</h3>
+                                </div>
+                                
+                                <div className="relative z-10 flex justify-between items-end mt-2 w-full">
+                                    {isManageMode ? (
+                                        <div className="flex gap-2 w-full animate-in fade-in zoom-in duration-200">
+                                            <button onClick={(e) => { e.stopPropagation(); setEditingSub(row); setNewSubCategoryName(row.name); setIsModalOpen(true); }} className="flex-1 bg-blue-50 text-blue-600 p-1.5 rounded-lg flex justify-center hover:bg-blue-100 transition-colors"><Edit2 size={16}/></button>
+                                            <button onClick={(e) => { e.stopPropagation(); setDeleteId(row._id); setIsDeleteModalOpen(true); }} className="flex-1 bg-red-50 text-red-600 p-1.5 rounded-lg flex justify-center hover:bg-red-100 transition-colors"><Trash2 size={16}/></button>
+                                        </div>
+                                    ) : ( 
+                                        <>
+                                            <span className="text-[10px] text-gray-400 font-bold uppercase">Select</span>
+                                            <div className={`bg-gray-50 p-1 rounded-full text-gray-400 group-hover:${primaryAccentBg} group-hover:text-white transition-colors`}>
+                                                <ChevronRight size={14} strokeWidth={3}/>
+                                            </div>
+                                        </> 
+                                    )}
+                                </div>
                             </div>
+                        );
+                    })}
+                    
+                    {/* Add New Button */}
+                    <button 
+                        onClick={() => { setEditingSub(null); setNewSubCategoryName(''); setIsModalOpen(true); }} 
+                        className='bg-white border-2 border-dashed border-gray-300 p-4 rounded-2xl active:scale-[0.97] transition-all flex flex-col justify-center items-center h-36 hover:border-slate-400 hover:shadow-md group'
+                    >
+                        <div className="bg-gray-50 p-3 rounded-full shadow-sm mb-2 group-hover:bg-slate-100 transition-colors">
+                            <SquarePlus size={24} className="text-gray-400 group-hover:text-slate-700" />
                         </div>
-                    );
-                })}
-                <button onClick={() => { setEditingSub(null); setNewSubCategoryName(''); setIsModalOpen(true); }} className='bg-gray-50 border-2 border-dashed border-gray-300 p-4 rounded-2xl active:scale-[0.96] transition-all flex flex-col justify-center items-center h-36 hover:border-primaryColor group'><div className="bg-white p-3 rounded-full shadow-sm mb-2"><SquarePlus size={24} className="text-gray-400 group-hover:text-primaryColor" /></div><span className="text-sm font-bold text-gray-500">Add New</span></button>
-            </div>
+                        <span className="text-sm font-bold text-gray-500">Add New</span>
+                    </button>
+                </div>
+            )}
 
+            {/* Create/Edit Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
-                        <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50"><h2 className="text-lg font-bold text-gray-800">{editingSub ? 'Edit Name' : 'New Sub Category'}</h2><button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-gray-200 rounded-full"><X size={20} /></button></div>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden">
+                        <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+                            <h2 className="text-lg font-bold text-gray-800">{editingSub ? 'Edit Name' : 'New Sub-Category'}</h2>
+                            <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-gray-200 rounded-full"><X size={20} /></button>
+                        </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <input autoFocus type="text" value={newSubCategoryName} onChange={(e) => setNewSubCategoryName(e.target.value)} className="w-full px-3 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-primaryColor" placeholder="Name" />
-                            <button type="submit" disabled={isCreating} className="w-full py-3 bg-primaryColor text-white font-bold rounded-xl flex justify-center gap-2">{isCreating ? <Loader2 className="animate-spin" size={20} /> : (editingSub ? "Update" : "Create")}</button>
+                            <input 
+                                autoFocus 
+                                type="text" 
+                                value={newSubCategoryName} 
+                                onChange={(e) => setNewSubCategoryName(e.target.value)} 
+                                className={`w-full px-3 py-3 border border-gray-300 rounded-xl outline-none focus:ring-2 ${primaryAccentRing}`} 
+                                placeholder="Sub-Category Name" 
+                            />
+                            <button 
+                                type="submit" 
+                                disabled={isCreating} 
+                                className={`w-full py-3.5 ${primaryAccentBg} text-white font-bold rounded-xl flex justify-center gap-2 hover:bg-slate-800 transition-colors`}
+                            >
+                                {isCreating ? <Loader2 className="animate-spin" size={20} /> : (editingSub ? "Update" : "Create")}
+                            </button>
                         </form>
                     </div>
                 </div>
             )}
 
+            {/* Delete Confirmation Modal */}
             {isDeleteModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-xs p-6 text-center">
-                        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600"><AlertTriangle size={28} /></div>
-                        <h3 className="text-lg font-bold mb-2">Delete?</h3>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xs p-6 text-center">
+                        <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 ring-4 ring-red-50/50">
+                            <AlertTriangle size={32} />
+                        </div>
+                        <h3 className="text-lg font-bold mb-2 text-gray-900">Delete Sub-Category?</h3>
                         <p className="text-sm text-gray-500 mb-6">This will delete all products inside.</p>
                         <div className="flex gap-3">
-                            <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-2.5 bg-gray-100 rounded-xl font-bold text-gray-700">Cancel</button>
-                            <button onClick={confirmDelete} disabled={isCreating} className="flex-1 py-2.5 bg-red-600 rounded-xl font-bold text-white flex justify-center">{isCreating ? <Loader2 className="animate-spin" size={18}/> : "Delete"}</button>
+                            <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-3 bg-gray-100 rounded-xl font-bold text-gray-700 hover:bg-gray-200 transition-colors">Cancel</button>
+                            <button onClick={confirmDelete} disabled={isCreating} className="flex-1 py-3 bg-red-600 rounded-xl font-bold text-white flex justify-center items-center gap-2 hover:bg-red-700 shadow-md shadow-red-500/30">
+                                {isCreating ? <Loader2 className="animate-spin" size={18}/> : "Delete"}
+                            </button>
                         </div>
                     </div>
                 </div>
