@@ -5,6 +5,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { Store, MapPin, Phone, Lock, Zap, CheckCircle2, Check, Loader2, ArrowRight, ShieldCheck, PieChart } from 'lucide-react'; 
 import { useAppContext } from '../../context/AppContext.jsx';
 import toast from 'react-hot-toast';
+import { businessOptions } from '../../utils/businessOptions.js';
 
 const Login = ({ onLoginSuccess }) => {
   const { axios, user } = useAppContext();
@@ -14,11 +15,6 @@ const Login = ({ onLoginSuccess }) => {
   
   const [formData, setFormData] = useState({ shopName: '', address: '', number: '', pin: '', businessTypes: [] });
 
-  const businessOptions = [
-      { id: 'electrical', label: 'Electrical' }, { id: 'sanitary', label: 'Sanitary' },
-      { id: 'grocery', label: 'Grocery' }, { id: 'mobile', label: 'Mobile' },
-      { id: 'machinery', label: 'Machinery' }, { id: 'other', label: 'Other' }
-  ];
 
   useEffect(() => {
       if (user && (!user.shopName || !user.pin || !user.number)) { setTempUserId(user._id); setShowOnboarding(true); }
