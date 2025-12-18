@@ -19,6 +19,7 @@ import Subscription from "./pages/dashboard/Subscription.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
 import InviteFriend from "./pages/other/InviteFriend.jsx";
 import ContactUs from "./pages/other/ContactUs.jsx";
+import Legal from "./pages/other/Legal.jsx";
 
 /* ------------------- PWA Detection ------------------- */
 const isPWA = () =>
@@ -93,6 +94,7 @@ const App = () => {
         {/* Other */}
         <Route path="/invite" element={<ProtectedRoute element={<InviteFriend />} />} />
         <Route path="/contact" element={<ProtectedRoute element={<ContactUs />} />} />
+        <Route path="/legal" element={<Legal />} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

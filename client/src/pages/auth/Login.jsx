@@ -234,6 +234,7 @@ const Login = ({ onLoginSuccess }) => {
             )}
         </div>
       </div>
+      <div className='bg-white z-20 flex gap-2 justify-center font-light text-gray-400 text-xs py-3'><a href="/legal">Privacy Policy</a> | <a href="/legal">Terms of Service</a> | <a href="/legal">Refund Policy</a></div>
     </div>
   );
 };
