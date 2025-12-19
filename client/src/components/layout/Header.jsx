@@ -32,7 +32,7 @@ const Header = () => {
 
                         {/* 2. Shop Name/Address (White text for contrast) */}
                         <div onClick={() => navigate('/')}>
-                            <h1 className="text-lg text-white font-extrabold leading-tight truncate max-w-[140px]">
+                            <h1 className="text-lg text-white font-extrabold leading-tight truncate max-w-[180px]">
                                 {user?.shopName || 'Billing Habit'}
                             </h1>
                             <p className={`text-[10px] ${secondaryAccent} font-medium truncate max-w-[140px]`}>

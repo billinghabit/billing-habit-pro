@@ -16,7 +16,7 @@ const InviteFriend = () => {
       try {
         await navigator.share({
           title: "Join Billing Habit",
-          text: "Manage your shop inventory and billing easily with Billing Habit!",
+          text: "Manage your shop earning and billing easily with Billing Habit!",
           url: referralLink,
         });
       } catch (error) {

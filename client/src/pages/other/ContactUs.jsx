@@ -4,7 +4,7 @@ import Navbar from '../../components/layout/Navbar.jsx';
 
 const ContactUs = () => {
     return (
-        <div className="bg-gray-50 min-h-screen pb-20">
+        <div className="bg-gray-50 min-h-screen pb-4">
             <Navbar title={"Contact Us"} />
             
             <div className="max-w-md mx-auto px-6 pt-10 space-y-8">
@@ -52,7 +52,7 @@ const ContactUs = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                             <h3 className="font-bold text-slate-900 text-sm">Email Support</h3>
-                            <p className="text-xs text-gray-500 mt-0.5 truncate">support@billinghabit.com</p>
+                            <p className="text-xs text-gray-500 mt-0.5 truncate">billinghabit@gmail.com</p>
                         </div>
                         <ChevronRight size={18} className="text-gray-300 group-hover:text-slate-900 transition-colors" />
                     </a>
@@ -80,8 +80,7 @@ const ContactUs = () => {
                         <div>
                             <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">Office Location</h4>
                             <p className="text-xs text-gray-500 leading-relaxed">
-                                123, Tech Park, Main Street,<br/>
-                                Jabalpur, MP - 482001
+                                Jabalpur, MP India - 482001
                             </p>
                         </div>
                     </div>

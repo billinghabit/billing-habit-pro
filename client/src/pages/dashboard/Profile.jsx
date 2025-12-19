@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../context/AppContext.jsx';
 import toast from 'react-hot-toast';
-import { User, Store, MapPin, Phone, Mail, Lock, Save, ArrowLeft, Edit2, ShieldCheck, ChevronRight, Loader2 } from 'lucide-react'; // Added Loader2 manually
+import { User, Store, MapPin, Phone, Mail, Lock, Save, ChevronLeft, Edit2, ShieldCheck, ChevronRight, Loader2 } from 'lucide-react'; // Added Loader2 manually
 
 
 const Profile = () => {
@@ -15,6 +15,7 @@ const Profile = () => {
     const primaryAccent = 'text-slate-900';
     const primaryAccentBg = 'bg-slate-900';
     const highlightBg = 'bg-slate-50'; 
+    const bgGradient = 'bg-linear-to-br from-blue-800 to-slate-900';
 
     useEffect(() => {
         if (user) {
@@ -47,8 +48,8 @@ const Profile = () => {
     return (
         <div className="bg-gray-50 min-h-screen pb-28">
             {/* Header (WhatsApp Style: Solid Dark Bar) */}
-            <div className={`sticky top-0 z-30 ${primaryAccentBg} px-4 h-16 flex items-center gap-3 shadow-md`}>
-                <button onClick={() => navigate('/')} className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors text-white"><ArrowLeft size={24} strokeWidth={2.5} /></button>
+            <div className={`sticky top-0 z-30 ${bgGradient} px-4 h-16 flex items-center gap-3 shadow-md`}>
+                <button onClick={() => navigate('/')} className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors text-white"><ChevronLeft size={24} strokeWidth={2.5} /></button>
                 <h1 className="font-bold text-xl text-white">My Profile</h1>
                 {!isEditing && <button onClick={() => setIsEditing(true)} className="ml-auto text-sm font-semibold bg-white/10 text-white px-3 py-1.5 rounded-xl transition-colors active:scale-95 flex items-center gap-1"><Edit2 size={14}/> Edit</button>}
             </div>

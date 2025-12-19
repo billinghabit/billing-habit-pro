@@ -7,7 +7,7 @@ const Navbar = ({ title }) => {
     const displayTitle = title || "Loading...";
 
     return (
-        <div className='bg-slate-900 shadow-md sticky top-0 z-50'>
+        <div className='bg-linear-to-br from-blue-800 to-slate-900 shadow-md sticky top-0 z-50'>
             <div className="relative flex items-center justify-center h-14 px-4">
                 <button 
                     onClick={() => navigate(-1)} 

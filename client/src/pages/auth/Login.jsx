@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { auth, provider } from '../../config/firebase';
 import { signInWithPopup } from "firebase/auth";
 import { FcGoogle } from 'react-icons/fc'; 
-import { Store, MapPin, Phone, Lock, Zap, CheckCircle2, Check, Loader2, ArrowRight, ShieldCheck, PieChart } from 'lucide-react'; 
+import { Store, Zap, Loader2, ArrowRight, PieChart } from 'lucide-react'; 
 import { useAppContext } from '../../context/AppContext.jsx';
 import toast from 'react-hot-toast';
 import { businessOptions } from '../../utils/businessOptions.js';
@@ -10,14 +10,25 @@ import { businessOptions } from '../../utils/businessOptions.js';
 const Login = ({ onLoginSuccess }) => {
   const { axios, user } = useAppContext();
   const [loading, setLoading] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [tempUserId, setTempUserId] = useState(null);
   
-  const [formData, setFormData] = useState({ shopName: '', address: '', number: '', pin: '', businessTypes: [] });
-
+  // NEW: Initial state depends on user status to prevent flicker/bypass on reload
+  const isIncomplete = user && (!user.shopName || !user.pin || !user.number);
+  const [showOnboarding, setShowOnboarding] = useState(isIncomplete);
+  const [tempUserId, setTempUserId] = useState(user?._id || null);
+  
+  const [formData, setFormData] = useState({ 
+    shopName: user?.shopName || '', 
+    address: user?.address || '', 
+    number: user?.number || '', 
+    pin: user?.pin || '', 
+    businessTypes: user?.businessType || [] 
+  });
 
   useEffect(() => {
-      if (user && (!user.shopName || !user.pin || !user.number)) { setTempUserId(user._id); setShowOnboarding(true); }
+      if (user && (!user.shopName || !user.pin || !user.number)) { 
+        setTempUserId(user._id); 
+        setShowOnboarding(true); 
+      }
   }, [user]);
 
   const toggleBusinessType = (id) => {
@@ -35,10 +46,22 @@ const Login = ({ onLoginSuccess }) => {
         try {
           const res = await axios.post('/user/google-login', { email: googleUser.email, name: googleUser.displayName, photo: googleUser.photoURL });
           if (res.data.success) {
-             if (res.data.requiresPhone) { setTempUserId(res.data.user?._id); setShowOnboarding(true); setLoading(false); } 
-             else { onLoginSuccess(res.data.user); toast.success("Welcome back!"); }
-          } else { toast.error(res.data.message || "Login failed"); setLoading(false); }
-        } catch (err) { toast.error("Server error"); setLoading(false); }
+             if (res.data.requiresPhone) { 
+               setTempUserId(res.data.user?._id); 
+               setShowOnboarding(true); 
+               setLoading(false); 
+             } else { 
+               onLoginSuccess(res.data.user); 
+               toast.success("Welcome back!"); 
+             }
+          } else { 
+            toast.error(res.data.message || "Login failed"); 
+            setLoading(false); 
+          }
+        } catch (err) { 
+          toast.error("Server error"); 
+          setLoading(false); 
+        }
       }).catch(() => setLoading(false));
   };
 
@@ -46,6 +69,7 @@ const Login = ({ onLoginSuccess }) => {
     e.preventDefault();
     if(!formData.shopName || !formData.address || !formData.number || !formData.pin) return toast.error("Please fill all fields");
     if(formData.businessTypes.length === 0) return toast.error("Select business type");
+    if(formData.number.length !== 10) return toast.error("Mobile number must be 10 digits");
     if(formData.pin.length !== 4) return toast.error("PIN must be 4 digits");
 
     setLoading(true);
@@ -53,29 +77,30 @@ const Login = ({ onLoginSuccess }) => {
         const targetId = tempUserId || user?._id;
         if (!targetId) return toast.error("Session error.");
         const res = await axios.post('/user/update-details', { userId: targetId, ...formData, businessType: formData.businessTypes });
-        if (res.data.success) { toast.success("Setup Complete!"); onLoginSuccess(res.data.user); } 
-        else { toast.error(res.data.message); }
-    } catch (err) { toast.error("Network error"); } finally { setLoading(false); }
+        if (res.data.success) { 
+          toast.success("Setup Complete!"); 
+          onLoginSuccess(res.data.user); 
+        } else { 
+          toast.error(res.data.message); 
+        }
+    } catch (err) { 
+      toast.error("Network error"); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   return (
     <div className='min-h-dvh w-full bg-white flex flex-col font-sans overflow-hidden'>
-      
-      {/* --- TOP HEADER (Brand Identity) --- */}
       <div className={`relative w-full ${showOnboarding ? 'h-[20vh]' : 'h-[42vh]'} transition-all duration-700 ease-out shrink-0`}>
-        {/* Deep Premium Gradient */}
         <div className="absolute inset-0 bg-linear-to-b from-blue-900 via-indigo-900 to-slate-900"></div>
-        
-        {/* Ambient Glows */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_top,var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent"></div>
         <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl mix-blend-screen"></div>
 
-        {/* Content */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center text-center p-6 pb-12">
             <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl mb-6 ring-4 ring-white/5">
                 <Store className="text-white w-8 h-8" />
             </div>
-            
             {!showOnboarding && (
                 <h1 className="text-4xl font-black text-white tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-700">
                     Billing Habit
@@ -84,15 +109,10 @@ const Login = ({ onLoginSuccess }) => {
         </div>
       </div>
 
-      {/* --- BOTTOM SHEET (Interactive Area) --- */}
       <div className="flex-1 bg-white relative z-20 -mt-8 rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden">
         <div className="h-full flex flex-col p-8 pt-10">
-            
             {!showOnboarding ? (
-                // --- LOGIN VIEW ---
                 <div className="flex-1 flex flex-col justify-between animate-in slide-in-from-bottom-8 duration-700">
-                    
-                    {/* CENTER UI: Smooth Vertical Value Props (No Cards) */}
                     <div className="space-y-8 pl-2">
                         <div className="flex gap-5 group">
                             <div className="relative">
@@ -119,7 +139,6 @@ const Login = ({ onLoginSuccess }) => {
                         </div>
                     </div>
 
-                    {/* Bottom Action */}
                     <div className="mt-6">
                         <button 
                             onClick={handleGoogleLogin} 
@@ -134,14 +153,12 @@ const Login = ({ onLoginSuccess }) => {
                                 <ArrowRight size={16} />
                             </div>
                         </button>
-                        
                         <p className="text-center text-xs text-gray-400 mt-6 font-medium">
                             Secure Cloud Sync • 100% Free to Start
                         </p>
                     </div>
                 </div>
             ) : (
-                // --- ONBOARDING VIEW ---
                 <div className="flex-1 flex flex-col h-full animate-in zoom-in-95 duration-500">
                     <div className="mb-6">
                         <h2 className='text-2xl font-bold text-gray-900'>Setup Shop</h2>
@@ -149,8 +166,6 @@ const Login = ({ onLoginSuccess }) => {
                     </div>
 
                     <form onSubmit={handleCompleteSetup} className="flex-1 flex flex-col gap-5 overflow-y-auto scrollbar-hide pb-4">
-                        
-                        {/* Chips */}
                         <div className="flex flex-wrap gap-2">
                             {businessOptions.map((opt) => {
                                 const isActive = formData.businessTypes.includes(opt.id);
@@ -172,7 +187,6 @@ const Login = ({ onLoginSuccess }) => {
                             })}
                         </div>
 
-                        {/* Floating Label Inputs */}
                         <div className="space-y-4">
                             <div className="relative">
                                 <input 
@@ -225,6 +239,7 @@ const Login = ({ onLoginSuccess }) => {
 
                         <button 
                             disabled={loading} 
+                            type="submit"
                             className="mt-auto w-full h-14 bg-blue-900 text-white rounded-2xl font-bold text-lg shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                         >
                             {loading ? <Loader2 className="animate-spin"/> : "Launch Dashboard"}
@@ -233,6 +248,9 @@ const Login = ({ onLoginSuccess }) => {
                 </div>
             )}
         </div>
+      </div>
+      <div className='bg-white z-20 flex gap-2 justify-center font-light text-gray-400 text-xs py-3'>
+        <a href="/legal">Privacy Policy</a> | <a href="/legal">Terms of Service</a> | <a href="/legal">Refund Policy</a>
       </div>
     </div>
   );
