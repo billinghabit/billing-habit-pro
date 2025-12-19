@@ -5,5 +5,7 @@ export const businessOptions = [
   { id: "construction", label: "Construction Material" },
   { id: "sanitaryware", label: "Sanitaryware" },
   { id: "paint", label: "Paint" },
+  { id: "powertools", label: "Power Tools" },
+  { id: "electrical", label: "Electrical" },
   { id: "other", label: "Other" },
 ];

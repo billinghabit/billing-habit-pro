@@ -712,5 +712,102 @@ export const inventoryTemplates = {
                 }
             ]
         }
+    ],
+
+    'electrical': [
+        {
+            category: "Electrical Fitting",
+            subCategories: [
+                // ---------- 1. Underground Fitting (Unit: pcs) ----------
+                {
+                    name: 'Underground Fitting',
+                    products: [
+                        { label: 'Light Pipe 1.5mm', unit: 'pcs', costPrice: 45, wholesalePrice: 55, sellingPrice: 75 },
+                        { label: 'Light Pipe 2mm', unit: 'pcs', costPrice: 55, wholesalePrice: 65, sellingPrice: 85 },
+                        { label: 'Light Pipe 2.5mm', unit: 'pcs', costPrice: 65, wholesalePrice: 75, sellingPrice: 105 },
+                        { label: 'Light Pipe 3mm', unit: 'pcs', costPrice: 80, wholesalePrice: 95, sellingPrice: 130 },
+                        { label: 'DP 1way (Roof)', unit: 'pcs', costPrice: 12, wholesalePrice: 18, sellingPrice: 30 },
+                        { label: 'DP 2way (Roof)', unit: 'pcs', costPrice: 14, wholesalePrice: 20, sellingPrice: 35 },
+                        { label: 'DP 3way (Roof)', unit: 'pcs', costPrice: 16, wholesalePrice: 22, sellingPrice: 40 },
+                        { label: 'DP 4way (Roof)', unit: 'pcs', costPrice: 18, wholesalePrice: 25, sellingPrice: 45 },
+                        { label: 'Light Pipe Bend', unit: 'pcs', costPrice: 6, wholesalePrice: 10, sellingPrice: 18 },
+                        { label: 'Fan Box (Heavy)', unit: 'pcs', costPrice: 85, wholesalePrice: 110, sellingPrice: 160 },
+                        { label: 'Electrical Tape (Pkt-10pcs)', unit: 'pcs', costPrice: 80, wholesalePrice: 100, sellingPrice: 150 },
+                        { label: 'Wall DP 1way', unit: 'pcs', costPrice: 10, wholesalePrice: 15, sellingPrice: 25 },
+                        { label: 'Wall DP 2way', unit: 'pcs', costPrice: 12, wholesalePrice: 18, sellingPrice: 30 },
+                        { label: 'Wall DP 3way', unit: 'pcs', costPrice: 15, wholesalePrice: 22, sellingPrice: 38 },
+                        { label: 'Wall DP 4way', unit: 'pcs', costPrice: 18, wholesalePrice: 26, sellingPrice: 45 },
+                        { label: 'Gi Box 1way', unit: 'pcs', costPrice: 25, wholesalePrice: 35, sellingPrice: 55 },
+                        { label: 'Gi Box 2way', unit: 'pcs', costPrice: 35, wholesalePrice: 48, sellingPrice: 75 },
+                        { label: 'Gi Box 3way', unit: 'pcs', costPrice: 45, wholesalePrice: 60, sellingPrice: 95 },
+                        { label: 'Gi Box 4way', unit: 'pcs', costPrice: 55, wholesalePrice: 75, sellingPrice: 115 },
+                        { label: 'Gi Box 6way', unit: 'pcs', costPrice: 75, wholesalePrice: 100, sellingPrice: 145 },
+                        { label: 'Gi Box 8way', unit: 'pcs', costPrice: 95, wholesalePrice: 130, sellingPrice: 185 },
+                        { label: 'Gi Box 12way', unit: 'pcs', costPrice: 140, wholesalePrice: 185, sellingPrice: 260 },
+                        { label: 'Gi Box 18way', unit: 'pcs', costPrice: 210, wholesalePrice: 280, sellingPrice: 395 }
+                    ]
+                },
+                // ---------- 2. Open Fitting (Unit: pcs/pkt/box) ----------
+                {
+                    name: 'Open Fitting',
+                    products: [
+                        { label: 'Casing (Light)', unit: 'pcs', costPrice: 45, wholesalePrice: 58, sellingPrice: 85 },
+                        { label: 'Casing Internal', unit: 'pcs', costPrice: 5, wholesalePrice: 8, sellingPrice: 15 },
+                        { label: 'Casing External', unit: 'pcs', costPrice: 5, wholesalePrice: 8, sellingPrice: 15 },
+                        { label: 'Casing Elbow', unit: 'pcs', costPrice: 6, wholesalePrice: 10, sellingPrice: 20 },
+                        { label: 'Casing Tee', unit: 'pcs', costPrice: 7, wholesalePrice: 12, sellingPrice: 22 },
+                        { label: 'Gulli (PVC)', unit: 'packet', costPrice: 35, wholesalePrice: 55, sellingPrice: 90 },
+                        { label: 'Screw 35/8 (Steel)', unit: 'box', costPrice: 140, wholesalePrice: 185, sellingPrice: 280 }
+                    ]
+                },
+                // ---------- 3. Wires (Unit: Coil/mtr) ----------
+                {
+                    name: 'Wires',
+                    products: [
+                        { label: 'Copper Wires 0.75mm (90m)', unit: 'pcs', costPrice: 650, wholesalePrice: 850, sellingPrice: 1150 },
+                        { label: 'Copper Wires 1mm (90m)', unit: 'pcs', costPrice: 880, wholesalePrice: 1100, sellingPrice: 1480 },
+                        { label: 'Copper Wires 1.5mm (90m)', unit: 'pcs', costPrice: 1250, wholesalePrice: 1600, sellingPrice: 2150 },
+                        { label: 'Copper Wires 2.5mm (90m)', unit: 'pcs', costPrice: 1950, wholesalePrice: 2500, sellingPrice: 3300 },
+                        { label: 'Copper Wires 4mm (90m)', unit: 'pcs', costPrice: 3100, wholesalePrice: 3800, sellingPrice: 4950 }
+                    ]
+                },
+                // ---------- 4. Switch & Socket (Unit: pcs) ----------
+                {
+                    name: 'Switch & Socket',
+                    products: [
+                        { label: 'Switch 6Amp', unit: 'pcs', costPrice: 12, wholesalePrice: 18, sellingPrice: 35 },
+                        { label: 'Socket 6Amp', unit: 'pcs', costPrice: 18, wholesalePrice: 28, sellingPrice: 55 },
+                        { label: 'Switch 16Amp', unit: 'pcs', costPrice: 35, wholesalePrice: 55, sellingPrice: 95 },
+                        { label: 'Socket 16Amp', unit: 'pcs', costPrice: 45, wholesalePrice: 65, sellingPrice: 120 },
+                        { label: 'Indicator', unit: 'pcs', costPrice: 15, wholesalePrice: 22, sellingPrice: 45 },
+                        { label: 'Blanky', unit: 'pcs', costPrice: 4, wholesalePrice: 7, sellingPrice: 15 },
+                        { label: 'Regulator (Switch Model)', unit: 'pcs', costPrice: 110, wholesalePrice: 165, sellingPrice: 260 },
+                        { label: 'Regulator (Socket Model)', unit: 'pcs', costPrice: 140, wholesalePrice: 195, sellingPrice: 320 },
+                        { label: '2Way Switch 6Amp', unit: 'pcs', costPrice: 22, wholesalePrice: 35, sellingPrice: 65 },
+                        { label: '2Way Switch 16Amp', unit: 'pcs', costPrice: 48, wholesalePrice: 72, sellingPrice: 135 },
+                        { label: 'PVC Board 1 way', unit: 'pcs', costPrice: 15, wholesalePrice: 25, sellingPrice: 45 },
+                        { label: 'PVC Board 2way', unit: 'pcs', costPrice: 22, wholesalePrice: 35, sellingPrice: 65 },
+                        { label: 'PVC Board 4 way', unit: 'pcs', costPrice: 38, wholesalePrice: 55, sellingPrice: 95 },
+                        { label: 'PVC Board 6way', unit: 'pcs', costPrice: 55, wholesalePrice: 75, sellingPrice: 125 },
+                        { label: 'PVC Board 8way', unit: 'pcs', costPrice: 72, wholesalePrice: 95, sellingPrice: 165 },
+                        { label: 'PVC Board 12way', unit: 'pcs', costPrice: 105, wholesalePrice: 145, sellingPrice: 240 },
+                        { label: 'PVC Board 18way', unit: 'pcs', costPrice: 165, wholesalePrice: 220, sellingPrice: 365 }
+                    ]
+                },
+                // ---------- 5. LED (Unit: pcs) ----------
+                {
+                    name: 'LED Lighting',
+                    products: [
+                        { label: 'LED Bulb 9W', unit: 'pcs', costPrice: 38, wholesalePrice: 55, sellingPrice: 95 },
+                        { label: 'LED Bulb 12W', unit: 'pcs', costPrice: 55, wholesalePrice: 75, sellingPrice: 135 },
+                        { label: 'LED Bulb 15W', unit: 'pcs', costPrice: 85, wholesalePrice: 115, sellingPrice: 195 },
+                        { label: 'LED Bulb 18W', unit: 'pcs', costPrice: 110, wholesalePrice: 145, sellingPrice: 245 },
+                        { label: 'LED Bulb 23W', unit: 'pcs', costPrice: 180, wholesalePrice: 240, sellingPrice: 380 },
+                        { label: 'LED Bulb 40W', unit: 'pcs', costPrice: 350, wholesalePrice: 450, sellingPrice: 680 },
+                        { label: 'LED Bulb 50W', unit: 'pcs', costPrice: 480, wholesalePrice: 620, sellingPrice: 850 }
+                    ]
+                }
+            ]
+        }
     ]
 };
