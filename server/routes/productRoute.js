@@ -1,6 +1,6 @@
 import express from 'express';
 import userAuth from '../middlewares/userAuth.js';
-import { createProduct, deleteProduct, getMyProducts, getProductsForList, getProductsForSubCategory, getProfitDetailsForList, updateProduct } from '../controllers/productController.js';
+import { createProduct, deleteProduct, getFilterData, getMyProducts, getProductsForList, getProductsForSubCategory, getProfitDetailsForList, updateProduct } from '../controllers/productController.js';
 import premiumAuth from '../middlewares/premiumAuth.js';
 
 const productRouter = express.Router();
@@ -26,6 +26,7 @@ productRouter.post('/get-profit-details', premiumAuth, getProfitDetailsForList);
 
 // GET /api/product/my-products
 productRouter.get('/my-products', getMyProducts);
+productRouter.get('/filter-data', userAuth, getFilterData);
 
 // PUT /api/product/update/:productId
 productRouter.put('/update/:productId', updateProduct);
