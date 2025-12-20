@@ -46,7 +46,7 @@ const UserDetails = () => {
 
             <div className="max-w-6xl mx-auto p-6">
                 <AdminUserStats userId={userId} /> 
-                {activeTab === 'inventory' && <AdminInventoryView data={data} />}
+                {activeTab === 'inventory' && <AdminInventoryView data={data} userId={userId} />}
                 {activeTab === 'quotes' && <AdminQuoteList quotes={data.quotes} />}
                 {activeTab === 'customers' && <AdminCustomerList customers={data.customers} />}
             </div>

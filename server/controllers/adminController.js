@@ -364,3 +364,17 @@ export const getUserAnalytics = async (req, res) => {
         res.json({ success: false, message: error.message }); 
     }
 };
+
+// Admin Logout
+export const adminLogout = async (req, res) => {
+    try {
+        res.clearCookie('adminToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        });
+        res.json({ success: true, message: "Logged Out" });
+    } catch (error) {
+        res.json({ success: false, message: error.message });
+    }
+};
