@@ -29,7 +29,7 @@ const App = () => {
             <Toaster position="top-center" />
             <Routes>
                 <Route path="/" element={isAuth ? <Navigate to="/dashboard" replace /> : <AdminLogin setAuth={setIsAuth} />} />
-                <Route path="/dashboard" element={<Protected><AdminDashboard /></Protected>} />
+                <Route path="/dashboard" element={<Protected><AdminDashboard setAuth={setIsAuth} /> </Protected>} />
                 <Route path="/user/:userId" element={<Protected><UserDetails /></Protected>} />
             </Routes>
         </>

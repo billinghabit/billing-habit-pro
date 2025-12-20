@@ -8,30 +8,23 @@ import AdminProductModal from '../modals/AdminProductModal';
 import AdminCategoryModal from '../modals/AdminCategoryModal';
 
 const AdminInventoryView = ({ data, userId }) => { 
-    // NOTE: Ensure userId is passed from parent <AdminInventoryView data={data} userId={userId} />
-
-    // --- State Initialization (Safe Defaults) ---
+    // --- State Initialization ---
     const [categories, setCategories] = useState(data?.categories || []);
     const [subCategories, setSubCategories] = useState(data?.subCategories || []);
     const [products, setProducts] = useState(data?.products || []);
     
     // --- Navigation State ---
-    const [view, setView] = useState('categories'); // 'categories' | 'subcategories' | 'products'
+    const [view, setView] = useState('categories'); 
     const [selectedCat, setSelectedCat] = useState(null);
     const [selectedSub, setSelectedSub] = useState(null);
 
     // --- Modal States ---
     const [isProdModalOpen, setIsProdModalOpen] = useState(false);
-    
-    // Unified Category/SubCategory Modal State
-    // type: 'Category' | 'SubCategory'
-    // data: null (for create) or object (for edit)
     const [catModal, setCatModal] = useState({ open: false, type: 'Category', data: null });
 
     // --- Filter Logic ---
     const currentSubCats = subCategories.filter(s => s.category === selectedCat?._id);
     const currentProducts = products.filter(p => p.subCategory === selectedSub?._id);
-
 
     // =========================================================
     //                    CATEGORY ACTIONS
@@ -42,28 +35,21 @@ const AdminInventoryView = ({ data, userId }) => {
             const payload = {
                 action: catModal.data ? 'update' : 'create',
                 id: catModal.data?._id,
-                targetUserId: userId, // Uses prop passed from parent
+                targetUserId: userId, 
                 ...formData
             };
             
             const res = await adminAxios.post('/manage-category-crud', payload);
 
             if (res.data.success) {
-                const returnedItem = res.data.category; // Ensure Backend returns this!
+                const returnedItem = res.data.category; 
                 
-                if (!returnedItem) {
-                    // Fallback if backend doesn't return the item (prevents crash)
-                    toast.success("Saved! Refreshing...");
-                    window.location.reload(); 
-                    return;
-                }
-
                 if (catModal.data) {
-                    // Update Existing
+                    // Update Local State
                     setCategories(prev => prev.map(c => c._id === returnedItem._id ? returnedItem : c));
                     toast.success("Category Updated");
                 } else {
-                    // Create New
+                    // Add to Local State
                     setCategories(prev => [...prev, returnedItem]);
                     toast.success("Category Created");
                 }
@@ -71,7 +57,6 @@ const AdminInventoryView = ({ data, userId }) => {
             }
         } catch (error) {
             toast.error("Operation Failed");
-            console.error(error);
         }
     };
 
@@ -88,7 +73,6 @@ const AdminInventoryView = ({ data, userId }) => {
         } catch { toast.error("Delete Failed"); }
     };
 
-
     // =========================================================
     //                  SUBCATEGORY ACTIONS
     // =========================================================
@@ -99,20 +83,14 @@ const AdminInventoryView = ({ data, userId }) => {
                 action: catModal.data ? 'update' : 'create',
                 id: catModal.data?._id,
                 targetUserId: userId,
-                categoryId: selectedCat._id, // Link to currently open Category
+                categoryId: selectedCat._id, 
                 ...formData
             };
 
             const res = await adminAxios.post('/manage-subcategory-crud', payload);
 
             if (res.data.success) {
-                const returnedItem = res.data.subCategory; // Ensure Backend returns this!
-
-                if (!returnedItem) {
-                    toast.success("Saved! Refreshing...");
-                    window.location.reload();
-                    return;
-                }
+                const returnedItem = res.data.subCategory;
 
                 if (catModal.data) {
                     setSubCategories(prev => prev.map(s => s._id === returnedItem._id ? returnedItem : s));
@@ -140,7 +118,6 @@ const AdminInventoryView = ({ data, userId }) => {
             }
         } catch { toast.error("Delete Failed"); }
     };
-
 
     // =========================================================
     //                    PRODUCT ACTIONS
@@ -177,7 +154,6 @@ const AdminInventoryView = ({ data, userId }) => {
             toast.success("Price Saved");
         } catch { toast.error("Update Failed"); }
     };
-
 
     // =========================================================
     //                       UI RENDER
@@ -231,8 +207,6 @@ const AdminInventoryView = ({ data, userId }) => {
             {/* --- VIEW 1: CATEGORIES --- */}
             {view === 'categories' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {categories.length === 0 && <div className="col-span-2 text-center py-10 text-slate-400 border-2 border-dashed rounded-2xl">No Categories Found</div>}
-                    
                     {categories.map(cat => (
                         <div key={cat._id} onClick={() => { setSelectedCat(cat); setView('subcategories'); }} className="bg-white p-6 rounded-4xl border border-slate-100 flex justify-between items-center cursor-pointer hover:shadow-lg hover:border-blue-100 transition-all group">
                             <div className="flex items-center gap-4">
@@ -255,8 +229,6 @@ const AdminInventoryView = ({ data, userId }) => {
             {/* --- VIEW 2: SUBCATEGORIES --- */}
             {view === 'subcategories' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {currentSubCats.length === 0 && <div className="col-span-2 text-center py-10 text-slate-400 border-2 border-dashed rounded-2xl">No SubCategories Yet</div>}
-
                     {currentSubCats.map(sub => (
                         <div key={sub._id} onClick={() => { setSelectedSub(sub); setView('products'); }} className="bg-white p-6 rounded-4xl border border-slate-100 flex justify-between items-center cursor-pointer hover:shadow-lg hover:border-purple-100 transition-all group">
                             <div className="flex items-center gap-4">
@@ -276,8 +248,6 @@ const AdminInventoryView = ({ data, userId }) => {
             {/* --- VIEW 3: PRODUCTS --- */}
             {view === 'products' && (
                 <div className="space-y-3">
-                    {currentProducts.length === 0 && <div className="text-center py-12 text-slate-400 border-2 border-dashed rounded-2xl bg-slate-50/50"><Box className="mx-auto mb-2 opacity-50"/>No products here.</div>}
-
                     {currentProducts.map(prod => (
                         <div key={prod._id} className="bg-white p-5 rounded-3xl border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4 group">
                             <div className="flex items-center gap-4 w-full md:w-auto">
@@ -302,8 +272,6 @@ const AdminInventoryView = ({ data, userId }) => {
             )}
 
             {/* --- MODALS --- */}
-            
-            {/* Unified Modal for Category & SubCategory */}
             <AdminCategoryModal 
                 isOpen={catModal.open} 
                 onClose={() => setCatModal({ ...catModal, open: false })} 
@@ -316,14 +284,14 @@ const AdminInventoryView = ({ data, userId }) => {
                 isOpen={isProdModalOpen} 
                 onClose={() => setIsProdModalOpen(false)}
                 onSubmit={handleAddProduct}
+                loading={false}
             />
         </div>
     );
 };
 
-// Helper: Price Input Component
 const PriceInput = ({ label, val, onSave }) => (
-    <div className="bg-slate-50 p-2 rounded-xl border border-slate-100 text-center min-w-[70px]">
+    <div className="bg-slate-50 p-2 rounded-xl border border-slate-100 text-center min-w-17.5">
         <p className="text-[9px] font-black uppercase text-slate-400 mb-1">{label}</p>
         <div className="flex justify-center items-center">
             <span className="text-xs text-slate-400 font-medium mr-0.5">₹</span>

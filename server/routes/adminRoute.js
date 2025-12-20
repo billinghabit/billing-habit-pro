@@ -1,5 +1,5 @@
 import express from "express";
-import { adminLogin, getAdminDashboard, getUserFullDetails, adminUpdateProduct, getAdminProfile, adminManageCategory, adminGetQuoteAnalytics, adminCreateProduct, adminDeleteProduct, getUserAnalytics, adminManageSubCategory } from "../controllers/adminController.js";
+import { adminLogin, getAdminDashboard, getUserFullDetails, adminUpdateProduct, getAdminProfile, adminManageCategory, adminGetQuoteAnalytics, adminCreateProduct, adminDeleteProduct, getUserAnalytics, adminManageSubCategory, adminLogout } from "../controllers/adminController.js";
 import adminAuth from "../middlewares/adminAuth.js"; 
 
 const adminRouter = express.Router();
@@ -21,6 +21,8 @@ adminRouter.delete("/delete-product/:productId", adminAuth, adminDeleteProduct);
 adminRouter.get("/user-analytics/:targetUserId", adminAuth, getUserAnalytics);
 adminRouter.post("/manage-category-crud", adminAuth, adminManageCategory);
 adminRouter.post("/manage-subcategory-crud", adminAuth, adminManageSubCategory);
+
+adminRouter.post("/logout", adminAuth, adminLogout);
 
 
 export default adminRouter;
