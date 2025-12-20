@@ -2,26 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { auth, provider } from '../../config/firebase';
 import { signInWithPopup } from "firebase/auth";
 import { FcGoogle } from 'react-icons/fc'; 
-import { Store, MapPin, Phone, Lock, ChevronRight, CheckCircle2, Zap, Briefcase, Check, Loader2 } from 'lucide-react'; 
+import { Store, Zap, Loader2, ArrowRight, PieChart } from 'lucide-react'; 
 import { useAppContext } from '../../context/AppContext.jsx';
 import toast from 'react-hot-toast';
+import { businessOptions } from '../../utils/businessOptions.js';
 
 const Login = ({ onLoginSuccess }) => {
   const { axios, user } = useAppContext();
   const [loading, setLoading] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [tempUserId, setTempUserId] = useState(null);
   
-  const [formData, setFormData] = useState({ shopName: '', address: '', number: '', pin: '', businessTypes: [] });
-
-  const businessOptions = [
-      { id: 'electrical', label: 'Electrical' }, { id: 'sanitary', label: 'Sanitary / Hardware' },
-      { id: 'grocery', label: 'Grocery / Kirana' }, { id: 'mobile', label: 'Mobile Shop' },
-      { id: 'machinery', label: 'Machinery' }, { id: 'other', label: 'Other' }
-  ];
+  // NEW: Initial state depends on user status to prevent flicker/bypass on reload
+  const isIncomplete = user && (!user.shopName || !user.pin || !user.number);
+  const [showOnboarding, setShowOnboarding] = useState(isIncomplete);
+  const [tempUserId, setTempUserId] = useState(user?._id || null);
+  
+  const [formData, setFormData] = useState({ 
+    shopName: user?.shopName || '', 
+    address: user?.address || '', 
+    number: user?.number || '', 
+    pin: user?.pin || '', 
+    businessTypes: user?.businessType || [] 
+  });
 
   useEffect(() => {
-      if (user && (!user.shopName || !user.pin || !user.number)) { setTempUserId(user._id); setShowOnboarding(true); }
+      if (user && (!user.shopName || !user.pin || !user.number)) { 
+        setTempUserId(user._id); 
+        setShowOnboarding(true); 
+      }
   }, [user]);
 
   const toggleBusinessType = (id) => {
@@ -39,10 +46,22 @@ const Login = ({ onLoginSuccess }) => {
         try {
           const res = await axios.post('/user/google-login', { email: googleUser.email, name: googleUser.displayName, photo: googleUser.photoURL });
           if (res.data.success) {
-             if (res.data.requiresPhone) { setTempUserId(res.data.user?._id); setShowOnboarding(true); setLoading(false); } 
-             else { onLoginSuccess(res.data.user); toast.success("Welcome back!"); }
-          } else { toast.error(res.data.message || "Login failed"); setLoading(false); }
-        } catch (err) { toast.error("Server error"); setLoading(false); }
+             if (res.data.requiresPhone) { 
+               setTempUserId(res.data.user?._id); 
+               setShowOnboarding(true); 
+               setLoading(false); 
+             } else { 
+               onLoginSuccess(res.data.user); 
+               toast.success("Welcome back!"); 
+             }
+          } else { 
+            toast.error(res.data.message || "Login failed"); 
+            setLoading(false); 
+          }
+        } catch (err) { 
+          toast.error("Server error"); 
+          setLoading(false); 
+        }
       }).catch(() => setLoading(false));
   };
 
@@ -50,6 +69,7 @@ const Login = ({ onLoginSuccess }) => {
     e.preventDefault();
     if(!formData.shopName || !formData.address || !formData.number || !formData.pin) return toast.error("Please fill all fields");
     if(formData.businessTypes.length === 0) return toast.error("Select business type");
+    if(formData.number.length !== 10) return toast.error("Mobile number must be 10 digits");
     if(formData.pin.length !== 4) return toast.error("PIN must be 4 digits");
 
     setLoading(true);
@@ -57,37 +77,180 @@ const Login = ({ onLoginSuccess }) => {
         const targetId = tempUserId || user?._id;
         if (!targetId) return toast.error("Session error.");
         const res = await axios.post('/user/update-details', { userId: targetId, ...formData, businessType: formData.businessTypes });
-        if (res.data.success) { toast.success("Setup Complete!"); onLoginSuccess(res.data.user); } 
-        else { toast.error(res.data.message); }
-    } catch (err) { toast.error("Network error"); } finally { setLoading(false); }
+        if (res.data.success) { 
+          toast.success("Setup Complete!"); 
+          onLoginSuccess(res.data.user); 
+        } else { 
+          toast.error(res.data.message); 
+        }
+    } catch (err) { 
+      toast.error("Network error"); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   return (
-    <div className='min-h-screen bg-slate-950 text-white flex flex-col relative overflow-hidden font-sans'>
-      {/* Background blobs omitted for brevity, keep your original ones */}
-      <div className="flex-1 flex flex-col justify-center p-6 z-10 relative max-w-md mx-auto w-full">
-        {!showOnboarding ? (
-            <div className="flex flex-col h-full justify-between py-10">
-                <div className="mt-8">
-                    <div className="w-16 h-16 bg-linear-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl mb-8"><Store className="text-white w-8 h-8" /></div>
-                    <h1 className="text-5xl font-black mb-4">Master <br/> Your Shop.</h1>
-                    <div className="space-y-4">{[{ text: 'Instant Quotations', icon: Zap }, { text: 'Profit Tracking', icon: CheckCircle2 }, { text: 'Secure Cloud', icon: Lock }].map((f, i) => (<div key={i} className="flex items-center gap-3 text-slate-300 bg-slate-900/50 p-3 rounded-xl border border-slate-800/50"><f.icon size={18} /><span className="font-medium">{f.text}</span></div>))}</div>
+    <div className='min-h-dvh w-full bg-white flex flex-col font-sans overflow-hidden'>
+      <div className={`relative w-full ${showOnboarding ? 'h-[20vh]' : 'h-[42vh]'} transition-all duration-700 ease-out shrink-0`}>
+        <div className="absolute inset-0 bg-linear-to-b from-blue-900 via-indigo-900 to-slate-900"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_top,var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent"></div>
+        <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl mix-blend-screen"></div>
+
+        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center p-6 pb-12">
+            <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl mb-6 ring-4 ring-white/5">
+                <Store className="text-white w-8 h-8" />
+            </div>
+            {!showOnboarding && (
+                <h1 className="text-4xl font-black text-white tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    Billing Habit
+                </h1>
+            )}
+        </div>
+      </div>
+
+      <div className="flex-1 bg-white relative z-20 -mt-8 rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden">
+        <div className="h-full flex flex-col p-8 pt-10">
+            {!showOnboarding ? (
+                <div className="flex-1 flex flex-col justify-between animate-in slide-in-from-bottom-8 duration-700">
+                    <div className="space-y-8 pl-2">
+                        <div className="flex gap-5 group">
+                            <div className="relative">
+                                <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-900 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                    <Zap size={20} fill="currentColor" className="text-blue-600/20" />
+                                    <Zap size={20} className="absolute" />
+                                </div>
+                                <div className="absolute top-10 left-1/2 w-0.5 h-full bg-gray-100 -ml-px"></div>
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-900 text-lg">Instant Invoicing</h3>
+                                <p className="text-gray-500 text-sm mt-1 leading-relaxed">Generate professional quotes in seconds.</p>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-5 group">
+                            <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300 z-10 relative">
+                                <PieChart size={20} />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-900 text-lg">Profit Tracking</h3>
+                                <p className="text-gray-500 text-sm mt-1 leading-relaxed">Know your quotes earnings at a glance.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-6">
+                        <button 
+                            onClick={handleGoogleLogin} 
+                            disabled={loading} 
+                            className="w-full h-16 bg-slate-900 text-white rounded-2xl font-bold text-lg shadow-xl shadow-slate-900/20 active:scale-[0.98] transition-all flex items-center justify-between px-6 hover:bg-slate-800"
+                        >
+                            <div className="flex items-center gap-4">
+                                {loading ? <Loader2 className="animate-spin text-white/50"/> : <FcGoogle className="text-2xl" />}
+                                <span>Get Started</span>
+                            </div>
+                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                                <ArrowRight size={16} />
+                            </div>
+                        </button>
+                        <p className="text-center text-xs text-gray-400 mt-6 font-medium">
+                            Secure Cloud Sync • 100% Free to Start
+                        </p>
+                    </div>
                 </div>
-                <div className="w-full mt-8"><button onClick={handleGoogleLogin} disabled={loading} className='w-full bg-white text-slate-950 h-14 rounded-2xl font-bold flex items-center justify-center gap-3'>{loading ? <Loader2 className="animate-spin"/> : <><FcGoogle className="text-2xl" /> Continue with Google</>}</button></div>
-            </div>
-        ) : (
-            <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 p-6 rounded-4xl shadow-2xl overflow-y-auto max-h-[85vh]">
-                <h2 className='text-2xl font-bold mb-6 text-center'>Setup Your Shop</h2>
-                <form onSubmit={handleCompleteSetup} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-2">{businessOptions.map((opt) => (<button key={opt.id} type="button" onClick={() => toggleBusinessType(opt.id)} className={`p-3 rounded-xl border text-sm font-medium flex items-center justify-center gap-2 ${formData.businessTypes.includes(opt.id) ? 'bg-blue-600 border-blue-500' : 'bg-slate-950 border-slate-800 text-slate-400'}`}>{opt.label} {formData.businessTypes.includes(opt.id) && <Check size={14}/>}</button>))}</div>
-                    <div className="relative group"><Store className="absolute left-4 top-3.5 text-slate-500 pointer-events-none" size={20} /><input className="w-full bg-slate-950 border border-slate-800 p-3.5 pl-12 rounded-xl focus:border-blue-500 outline-none" placeholder="Shop Name" value={formData.shopName} onChange={e => setFormData({...formData, shopName: e.target.value})} /></div>
-                    <div className="relative group"><MapPin className="absolute left-4 top-3.5 text-slate-500 pointer-events-none" size={20} /><input className="w-full bg-slate-950 border border-slate-800 p-3.5 pl-12 rounded-xl focus:border-blue-500 outline-none" placeholder="Address" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} /></div>
-                    <div className="relative group"><Phone className="absolute left-4 top-3.5 text-slate-500 pointer-events-none" size={20} /><input type="tel" className="w-full bg-slate-950 border border-slate-800 p-3.5 pl-12 rounded-xl focus:border-blue-500 outline-none" placeholder="Mobile" value={formData.number} onChange={e => setFormData({...formData, number: e.target.value})} /></div>
-                    <div className="relative group"><Lock className="absolute left-4 top-3.5 text-slate-500 pointer-events-none" size={20} /><input type="tel" maxLength={4} className="w-full bg-slate-950 border border-slate-800 p-3.5 pl-12 rounded-xl tracking-[0.5em] text-center font-bold focus:border-blue-500 outline-none" placeholder="PIN" value={formData.pin} onChange={e => setFormData({...formData, pin: e.target.value})} /></div>
-                    <button disabled={loading} className='w-full bg-blue-600 p-4 rounded-xl font-bold mt-4 flex justify-center'>{loading ? <Loader2 className="animate-spin"/> : "Finish Setup"}</button>
-                </form>
-            </div>
-        )}
+            ) : (
+                <div className="flex-1 flex flex-col h-full animate-in zoom-in-95 duration-500">
+                    <div className="mb-6">
+                        <h2 className='text-2xl font-bold text-gray-900'>Setup Shop</h2>
+                        <p className="text-sm text-gray-500 mt-1">Customize your business profile</p>
+                    </div>
+
+                    <form onSubmit={handleCompleteSetup} className="flex-1 flex flex-col gap-5 overflow-y-auto scrollbar-hide pb-4">
+                        <div className="flex flex-wrap gap-2">
+                            {businessOptions.map((opt) => {
+                                const isActive = formData.businessTypes.includes(opt.id);
+                                return (
+                                    <button 
+                                        key={opt.id} 
+                                        type="button" 
+                                        onClick={() => toggleBusinessType(opt.id)} 
+                                        className={`px-4 py-2.5 rounded-full text-xs font-bold transition-all border
+                                            ${isActive 
+                                                ? 'bg-blue-900 border-blue-900 text-white shadow-md shadow-blue-200' 
+                                                : 'bg-white border-gray-200 text-gray-600'
+                                            }`
+                                        }
+                                    >
+                                        {opt.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="relative">
+                                <input 
+                                    className="peer w-full h-14 bg-gray-50 border-0 rounded-2xl px-4 pt-4 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-semibold text-gray-800 placeholder-transparent" 
+                                    placeholder="Name"
+                                    id="shopName"
+                                    value={formData.shopName} 
+                                    onChange={e => setFormData({...formData, shopName: e.target.value})} 
+                                />
+                                <label htmlFor="shopName" className="absolute left-4 top-1 text-[10px] font-bold text-gray-400 uppercase transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-blue-900">Shop Name</label>
+                            </div>
+
+                            <div className="relative">
+                                <input 
+                                    className="peer w-full h-14 bg-gray-50 border-0 rounded-2xl px-4 pt-4 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-semibold text-gray-800 placeholder-transparent" 
+                                    placeholder="Addr"
+                                    id="address"
+                                    value={formData.address} 
+                                    onChange={e => setFormData({...formData, address: e.target.value})} 
+                                />
+                                <label htmlFor="address" className="absolute left-4 top-1 text-[10px] font-bold text-gray-400 uppercase transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-blue-900">Address</label>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <div className="relative flex-1">
+                                    <input 
+                                        type="tel"
+                                        className="peer w-full h-14 bg-gray-50 border-0 rounded-2xl px-4 pt-4 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-semibold text-gray-800 placeholder-transparent" 
+                                        placeholder="Mob"
+                                        id="mobile"
+                                        value={formData.number} 
+                                        onChange={e => setFormData({...formData, number: e.target.value})} 
+                                    />
+                                    <label htmlFor="mobile" className="absolute left-4 top-1 text-[10px] font-bold text-gray-400 uppercase transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-blue-900">Mobile</label>
+                                </div>
+                                <div className="relative w-28">
+                                    <input 
+                                        type="tel"
+                                        maxLength={4}
+                                        className="peer w-full h-14 bg-gray-50 border-0 rounded-2xl px-4 pt-4 outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-bold text-gray-800 text-center tracking-widest placeholder-transparent" 
+                                        placeholder="PIN"
+                                        id="pin"
+                                        value={formData.pin} 
+                                        onChange={e => setFormData({...formData, pin: e.target.value})} 
+                                    />
+                                    <label htmlFor="pin" className="absolute left-0 right-0 text-center top-1 text-[10px] font-bold text-gray-400 uppercase transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:text-gray-400 peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-blue-900">PIN</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button 
+                            disabled={loading} 
+                            type="submit"
+                            className="mt-auto w-full h-14 bg-blue-900 text-white rounded-2xl font-bold text-lg shadow-lg shadow-blue-600/30 hover:shadow-blue-600/40 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                        >
+                            {loading ? <Loader2 className="animate-spin"/> : "Launch Dashboard"}
+                        </button>
+                    </form>
+                </div>
+            )}
+        </div>
+      </div>
+      <div className='bg-white z-20 flex gap-2 justify-center font-light text-gray-400 text-xs py-3'>
+        <a href="/legal">Privacy Policy</a> | <a href="/legal">Terms of Service</a> | <a href="/legal">Refund Policy</a>
       </div>
     </div>
   );

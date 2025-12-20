@@ -21,6 +21,13 @@ const Category = ({ searchTerm }) => {
     const [formData, setFormData] = useState({ name: '', desc: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // --- Color Accent: Dark Slate ---
+    const primaryAccentBg = 'bg-slate-900';
+    const primaryAccentBgLight = 'bg-slate-100';
+    const primaryAccentRing = 'focus:ring-slate-900/30';
+    const primaryAccentText = 'text-slate-900';
+
+
     useEffect(() => {
         setList({});
         const fetchCategories = async () => {
@@ -78,50 +85,90 @@ const Category = ({ searchTerm }) => {
 
     const filtered = categories.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    if (loading) return <div className='flex justify-center items-center h-40'><Loader2 className="animate-spin text-primaryColor" size={32} /></div>;
+    // --- Custom Category Skeleton Loader ---
+    const CategorySkeleton = () => (
+        <div className="grid grid-cols-2 gap-3 pb-4 animate-pulse">
+            {[1, 2, 3, 4].map(i => (
+                <div key={i} className="bg-white p-4 rounded-2xl shadow-md border border-gray-100 h-36">
+                    <div className="bg-gray-200 p-2.5 rounded-full mb-3 w-10 h-10"></div>
+                    <div className="bg-gray-200 h-4 w-4/5 rounded mb-2"></div>
+                    <div className="bg-gray-100 h-4 w-1/2 rounded"></div>
+                </div>
+            ))}
+        </div>
+    );
+    // ----------------------------------------
 
     return (
         <div className="px-4">
-            <div className="flex justify-between items-center mb-4 px-1">
+            {/* Header and Manage Toggle (Always visible) */}
+            <div className="flex justify-between items-center mb-4 px-1 pt-4">
                 <div className="flex items-center gap-2">
                     <h2 className="font-bold text-gray-800 text-lg">Categories</h2>
                     <span className="text-[10px] font-bold text-gray-500 bg-white px-2 py-1 rounded-full border border-gray-200 shadow-sm">{categories.length}</span>
                 </div>
-                <button onClick={() => setIsManageMode(!isManageMode)} className={`p-2 rounded-full transition-all ${isManageMode ? 'bg-primaryColor text-white shadow-lg' : 'bg-white text-gray-400'}`}><Settings size={18} /></button>
+                <button onClick={() => setIsManageMode(!isManageMode)} className={`p-2 rounded-xl transition-all active:scale-[0.95] ${isManageMode ? `${primaryAccentBg} text-white shadow-lg shadow-slate-900/30` : 'bg-white text-gray-500 border border-gray-200 shadow-md hover:bg-gray-50'}`}><Settings size={18} /></button>
             </div>
-
-            <div className="grid grid-cols-2 gap-3 pb-4">
-                {filtered.map((cat) => (
-                    <div key={cat._id} onClick={() => !isManageMode && navigate(`/sub-category/${cat._id}`)} className={`bg-white p-4 rounded-2xl shadow-sm border transition-all duration-200 flex flex-col justify-between h-36 relative overflow-hidden group ${isManageMode ? 'border-primaryColor/30' : 'border-gray-100 active:scale-[0.96] cursor-pointer'}`}>
-                        <div className="absolute -right-6 -top-6 w-20 h-20 bg-green-50 rounded-full group-hover:scale-150 transition-transform duration-500 ease-out"></div>
-                        <div className="relative z-10 flex-1 flex flex-col items-start justify-center">
-                            <div className="bg-green-50 p-2.5 rounded-full mb-3 text-primaryColor"><Layers size={20} /></div>
-                            <h3 className="font-bold text-gray-800 leading-snug line-clamp-2 text-[15px]">{cat.name}</h3>
+            
+            {/* Conditionally render Skeleton or Content */}
+            {loading ? (
+                <CategorySkeleton />
+            ) : (
+                <div className="grid grid-cols-2 gap-3 pb-4">
+                    {/* Display filtered categories or message if none found */}
+                    {filtered.length === 0 ? (
+                        <div className="col-span-2 text-center py-12 text-gray-500">
+                             <Layers size={32} className="opacity-30 mx-auto mb-2"/>
+                             <p className="font-medium">No categories found matching "{searchTerm}".</p>
                         </div>
-                        <div className="relative z-10 flex justify-between items-end mt-2 w-full">
-                            {isManageMode ? (
-                                <div className="flex gap-2 w-full animate-in fade-in zoom-in duration-200">
-                                    <button onClick={(e) => { e.stopPropagation(); handleOpenModal(cat); }} className="flex-1 bg-blue-50 text-blue-600 p-2 rounded-lg flex justify-center"><Edit2 size={16}/></button>
-                                    <button onClick={(e) => { e.stopPropagation(); setDeleteId(cat._id); setIsDeleteModalOpen(true); }} className="flex-1 bg-red-50 text-red-600 p-2 rounded-lg flex justify-center"><Trash2 size={16}/></button>
+                    ) : (
+                        filtered.map((cat) => (
+                            <div key={cat._id} onClick={() => !isManageMode && navigate(`/sub-category/${cat._id}`)} className={`bg-white p-4 rounded-2xl shadow-md border transition-all duration-200 flex flex-col justify-between h-36 relative overflow-hidden group ${isManageMode ? 'ring-2 ring-slate-300' : 'border-gray-100 active:scale-[0.97] cursor-pointer hover:shadow-lg'}`}>
+                                {/* Subtle Accent Glow */}
+                                <div className={`absolute -right-6 -top-6 w-20 h-20 ${primaryAccentBgLight} rounded-full group-hover:scale-150 transition-transform duration-500 ease-out`}></div>
+                                
+                                <div className="relative z-10 flex-1 flex flex-col items-start justify-center">
+                                    {/* Icon - Layers icon for categories, using a light accent BG */}
+                                    <div className={`bg-blue-100 p-2.5 rounded-full mb-3 text-blue-800 shadow-inner`}><Layers size={20} /></div>
+                                    <h3 className="font-bold text-gray-800 leading-snug line-clamp-2 text-[15px]">{cat.name}</h3>
                                 </div>
-                            ) : (
-                                <><span className="text-[10px] text-gray-400 font-bold uppercase">Select</span><div className="bg-gray-50 p-1.5 rounded-full text-gray-400 group-hover:bg-primaryColor group-hover:text-white"><ChevronRight size={14} strokeWidth={3}/></div></>
-                            )}
-                        </div>
-                    </div>
-                ))}
-                <button onClick={() => handleOpenModal()} className="bg-gray-50 border-2 border-dashed border-gray-300 p-4 rounded-2xl active:scale-[0.96] transition-all h-36 flex flex-col justify-center items-center group hover:border-primaryColor"><div className="bg-white p-3 rounded-full shadow-sm mb-2 group-hover:text-primaryColor"><Plus size={24} className="text-gray-400"/></div><span className="text-sm font-bold text-gray-500">Add Category</span></button>
-            </div>
+                                <div className="relative z-10 flex justify-between items-end mt-2 w-full">
+                                    {isManageMode ? (
+                                        <div className="flex gap-2 w-full animate-in fade-in zoom-in duration-200">
+                                            <button onClick={(e) => { e.stopPropagation(); handleOpenModal(cat); }} className="flex-1 bg-blue-50 text-blue-900 p-2 rounded-lg flex justify-center hover:bg-blue-100 transition-colors shadow-sm"><Edit2 size={16}/></button>
+                                            <button onClick={(e) => { e.stopPropagation(); setDeleteId(cat._id); setIsDeleteModalOpen(true); }} className="flex-1 bg-red-50 text-red-600 p-2 rounded-lg flex justify-center hover:bg-red-100 transition-colors shadow-sm"><Trash2 size={16}/></button>
+                                        </div>
+                                    ) : (
+                                        <><span className="text-[10px] text-gray-400 font-bold uppercase">Select</span><div className={`bg-gray-50 p-1.5 rounded-full text-gray-400 group-hover:${primaryAccentBg} group-hover:text-white transition-colors`}><ChevronRight size={14} strokeWidth={3}/></div></>
+                                    )}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                    
+                    {/* Add Category Button (Always visible if not loading) */}
+                    {!loading && filtered.length > 0 && (
+                        <button onClick={() => handleOpenModal()} className={`bg-white border-2 border-dashed border-gray-300 p-4 rounded-2xl active:scale-[0.97] transition-all h-36 flex flex-col justify-center items-center group hover:border-slate-400 hover:shadow-md`}>
+                            <div className="bg-gray-50 p-3 rounded-full shadow-sm mb-2 group-hover:bg-slate-100"><Plus size={24} className="text-gray-400 group-hover:text-slate-700"/></div>
+                            <span className="text-sm font-bold text-gray-500">Add Category</span>
+                        </button>
+                    )}
+                </div>
+            )}
+            
+            {/* Modals remain below */}
 
             {/* Create/Edit Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
-                        <div className="px-5 py-4 border-b flex justify-between items-center bg-gray-50"><h3 className="font-bold text-lg text-gray-800">{editingCategory ? 'Edit' : 'New'} Category</h3><button onClick={() => setIsModalOpen(false)}><X size={20} className="text-gray-500" /></button></div>
-                        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-                            <input autoFocus type="text" placeholder="Name" className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-primaryColor" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
-                            <input type="text" placeholder="Description (Optional)" className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-primaryColor" value={formData.desc} onChange={(e) => setFormData({...formData, desc: e.target.value})} />
-                            <button type="submit" disabled={isSubmitting} className="w-full py-3.5 bg-primaryColor text-white font-bold rounded-xl">{isSubmitting ? <Loader2 className="animate-spin" size={20}/> : "Save"}</button>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden">
+                        <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50"><h3 className="font-bold text-xl text-gray-800">{editingCategory ? 'Edit Category' : 'New Category'}</h3><button onClick={() => setIsModalOpen(false)} className="p-1 text-gray-500 hover:bg-gray-200 rounded-full"><X size={22} /></button></div>
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            <input autoFocus type="text" placeholder="Name" className={`w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 ${primaryAccentRing}`} value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+                            <input type="text" placeholder="Description (Optional)" className={`w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 ${primaryAccentRing}`} value={formData.desc} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+                            <button type="submit" disabled={isSubmitting} className={`w-full py-3.5 ${primaryAccentBg} text-white font-bold rounded-xl shadow-lg shadow-slate-900/30 hover:bg-slate-800 transition-all flex justify-center items-center gap-2`}>
+                                {isSubmitting ? <Loader2 className="animate-spin" size={20}/> : "Save"}
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -129,14 +176,16 @@ const Category = ({ searchTerm }) => {
 
             {/* Delete Modal */}
             {isDeleteModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-xs p-6 text-center">
-                        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600"><AlertTriangle size={28}/></div>
-                        <h3 className="text-lg font-bold mb-2">Delete Category?</h3>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xs p-6 text-center">
+                        <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 ring-4 ring-red-50/50"><AlertTriangle size={32}/></div>
+                        <h3 className="text-xl font-bold mb-2 text-gray-900">Delete Category?</h3>
                         <p className="text-sm text-gray-500 mb-6">This will delete ALL products inside.</p>
                         <div className="flex gap-3">
-                            <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-2.5 bg-gray-100 rounded-xl font-bold text-gray-700">Cancel</button>
-                            <button onClick={handleDelete} disabled={isSubmitting} className="flex-1 py-2.5 bg-red-600 rounded-xl font-bold text-white flex justify-center">{isSubmitting ? <Loader2 className="animate-spin" size={18}/> : "Delete"}</button>
+                            <button onClick={() => setIsDeleteModalOpen(false)} className="flex-1 py-3 bg-gray-100 rounded-xl font-bold text-gray-700 hover:bg-gray-200 transition-colors">Cancel</button>
+                            <button onClick={handleDelete} disabled={isSubmitting} className="flex-1 py-3 bg-red-600 rounded-xl font-bold text-white flex justify-center items-center gap-2 hover:bg-red-700 shadow-md shadow-red-500/30">
+                                {isSubmitting ? <Loader2 className="animate-spin" size={18}/> : "Delete"}
+                            </button>
                         </div>
                     </div>
                 </div>

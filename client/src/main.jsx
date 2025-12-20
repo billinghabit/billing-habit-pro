@@ -4,12 +4,9 @@ import './index.css'
 import App from './App.jsx'
 import { BrowserRouter } from 'react-router-dom'
 import { AppContextProvider } from './context/AppContext.jsx'
+import { registerSW } from 'virtual:pwa-register'
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(err => console.error(err));
-  });
-}
+registerSW({ immediate: true })
 
 window.deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {

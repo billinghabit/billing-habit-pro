@@ -1,5 +1,6 @@
 import productModel from "../models/productModel.js";
 import mongoose from "mongoose";
+import subCategoryModel from "../models/subCategoryModel.js"; 
 
 // --- 1. Create a New Product (Updated) ---
 export const createProduct = async (req, res) => {
@@ -119,32 +120,67 @@ export const getProfitDetailsForList = async (req, res) => {
     }
 };
 
-// --- 5. Get My Products (FIXED) ---
+// --- 5. Get My Products: (With Category & Search Fixes) ---
 export const getMyProducts = async (req, res) => {
     const userId = req.userId;
+    
+    // 1. Get Query Params
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const search = req.query.search || "";
+    const subCategoryId = req.query.subCategoryId; 
+    const categoryId = req.query.categoryId; // <--- NEW PARAM
+
     try {
-        const products = await productModel.find({ user: userId })
+        // 2. Build Base Query
+        const query = { 
+            user: userId,
+            label: { $regex: search, $options: "i" } 
+        };
+
+        // 3. Apply Category Filter
+        // If user selected a specific SubCategory
+        if (subCategoryId && subCategoryId !== 'All') {
+            query.subCategory = subCategoryId;
+        } 
+        // If user selected a Main Category (e.g., "Electronics")
+        else if (categoryId && categoryId !== 'All') {
+            // Find all subcategories that belong to this Main Category
+            const relatedSubCats = await subCategoryModel.find({ 
+                category: categoryId, 
+                user: userId 
+            }).select('_id');
+
+            // Filter products that belong to ANY of those subcategories
+            query.subCategory = { $in: relatedSubCats.map(sub => sub._id) };
+        }
+
+        // 4. Count & Fetch
+        const totalProducts = await productModel.countDocuments(query);
+
+        const products = await productModel.find(query)
             .populate({
                 path: 'subCategory',
-                populate: {
-                    path: 'category', // <--- CHANGED from 'categoryId' to 'category'
-                    select: 'name'
-                },
-                select: 'name category' // Select the field we just populated
+                populate: { path: 'category', select: 'name' },
+                select: 'name category'
             })
-            .sort({ label: 1 }); 
+            .sort({ label: 1 })
+            .skip((page - 1) * limit)
+            .limit(limit);
 
         res.status(200).json({
             success: true,
             products,
+            currentPage: page,
+            totalPages: Math.ceil(totalProducts / limit),
+            totalProducts,
         });
+
     } catch (error) {
         console.error("Error in getMyProducts:", error);
         res.status(500).json({ success: false, message: "Server Error" });
     }
 };
-
-// --- 6. Update Product (Updated) ---
 
 export const updateProduct = async (req, res) => {
     try {
@@ -206,6 +242,37 @@ export const deleteProduct = async (req, res) => {
 
     } catch (error) {
         console.error("Error in deleteProduct:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};
+
+// --- NEW: Helper to get Categories for the Buttons ---
+export const getFilterData = async (req, res) => {
+    try {
+        const userId = req.userId;
+        
+        // Fetch all subcategories for this user and populate their parent category
+        const subCategories = await subCategoryModel.find({ user: userId })
+            .populate('category', 'name') // Only get the name and ID
+            .lean(); // Faster
+
+        // Extract unique Parent Categories from the subcategories
+        const categoryMap = new Map();
+        subCategories.forEach(sub => {
+            if (sub.category) {
+                categoryMap.set(sub.category._id.toString(), sub.category);
+            }
+        });
+
+        const categories = Array.from(categoryMap.values());
+
+        res.status(200).json({
+            success: true,
+            categories,
+            subCategories
+        });
+    } catch (error) {
+        console.error("Error fetching filters:", error);
         res.status(500).json({ success: false, message: "Server Error" });
     }
 };

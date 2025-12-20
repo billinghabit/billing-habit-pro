@@ -15,6 +15,10 @@ const Customer = () => {
     const [isCreating, setIsCreating] = useState(false);
     const [formData, setFormData] = useState({ name: '', address: '', number: '' });
 
+    // --- Theme Accents ---
+    const primaryAccentBg = 'bg-slate-900';
+    const primaryAccentRing = 'focus:ring-slate-900/30';
+
     useEffect(() => {
         const fetch = async () => {
             try {
@@ -39,44 +43,118 @@ const Customer = () => {
         if (!formData.name) return toast.error("Name required");
         setIsCreating(true);
         try {
+            // Using placeholder fields for focus ring color
             const res = await axios.post('/customer/add', formData);
             if (res.data.success) {
                 toast.success("Created!");
                 handleSelect(res.data.customer);
+                setFormData({ name: '', address: '', number: '' });
+                setIsModalOpen(false); // Close on success
             }
         } catch (e) { toast.error("Failed to create"); } 
         finally { setIsCreating(false); }
     };
 
-    if (loading) return <><Navbar title="Loading..." /><div className='flex justify-center items-center h-64'><Loader2 className="animate-spin text-primaryColor" size={40} /></div></>;
+    // --- Customer List Skeleton ---
+    const CustomerSkeleton = () => (
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-full bg-gray-200 shrink-0"></div>
+                    <div className="flex-1 min-w-0 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-100 rounded w-1/2"></div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+
+    if (loading) return (
+        <div className="bg-gray-50 min-h-screen">
+            <Navbar title="Loading..." />
+            <CustomerSkeleton />
+        </div>
+    );
 
     return (
         <div className="pb-24 bg-gray-50 min-h-screen">
             <Navbar title="Select Customer" />
-            <div className="sticky top-14 z-10 px-4 py-3 bg-gray-50/95 backdrop-blur-sm border-b border-gray-200">
-                <div className="relative shadow-sm rounded-xl max-w-2xl mx-auto">
-                    <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-11 pr-4 py-3 border-none rounded-xl focus:ring-2 focus:ring-primaryColor/50 outline-none" />
-                    <Search className="absolute left-4 top-3.5 text-gray-400" size={20} />
+            
+            {/* Sticky Search Bar (Matching Home UI) */}
+            <div className="sticky top-14 z-10 px-5 pb-2 pt-4 bg-gray-50/95 backdrop-blur-sm border-b border-gray-100 shadow-md">
+                <div className="relative max-w-2xl mx-auto">
+                    <input 
+                        type="text" 
+                        placeholder="Search customer name or number..." 
+                        value={searchTerm} 
+                        onChange={(e) => setSearchTerm(e.target.value)} 
+                        className={`w-full p-3.5 pl-12 rounded-2xl border border-gray-200 shadow-lg ${primaryAccentRing} text-gray-800 font-medium placeholder-gray-400 outline-none transition-all`} 
+                    />
+                    <Search className="absolute left-4 top-3.5 text-gray-400" size={22} />
                 </div>
             </div>
+
+            {/* Customer List */}
             <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredCustomers.length === 0 ? <div className="col-span-full flex flex-col items-center mt-16 text-gray-400"><Users size={40} className="opacity-30"/><p>No customers found.</p></div> : filteredCustomers.map(c => (
-                    <div key={c._id} onClick={() => handleSelect(c)} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 active:scale-[0.98] cursor-pointer">
-                        <div className="h-12 w-12 rounded-full bg-green-50 flex items-center justify-center border border-green-100 shrink-0"><User className="text-primaryColor" size={24} /></div>
-                        <div className="flex-1 min-w-0"><h3 className="text-base font-bold text-gray-800 truncate">{c.name}</h3><div className="flex flex-col gap-0.5 mt-1">{c.number && <div className="flex items-center gap-1.5 text-xs text-gray-500"><Phone size={12}/>{c.number}</div>}{c.address && <div className="flex items-center gap-1.5 text-xs text-gray-500"><MapPin size={12}/><span className="truncate">{c.address}</span></div>}</div></div>
+                {filteredCustomers.length === 0 ? (
+                    <div className="col-span-full flex flex-col items-center mt-16 text-gray-400 bg-white p-12 rounded-2xl shadow-sm border border-gray-100">
+                        <Users size={40} className="opacity-30 mb-2"/>
+                        <p className="text-base font-medium">No customers found.</p>
+                    </div>
+                ) : filteredCustomers.map(c => (
+                    <div 
+                        key={c._id} 
+                        onClick={() => handleSelect(c)} 
+                        className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 active:scale-[0.98] cursor-pointer hover:shadow-md transition-all"
+                    >
+                        <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 shrink-0 text-slate-700">
+                            <User size={24} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h3 className="text-base font-bold text-gray-800 truncate">{c.name}</h3>
+                            <div className="flex flex-col gap-0.5 mt-1">
+                                {c.number && (
+                                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                        <Phone size={12} className='text-gray-400'/>
+                                        {c.number}
+                                    </div>
+                                )}
+                                {c.address && (
+                                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                        <MapPin size={12} className='text-gray-400'/>
+                                        <span className="truncate">{c.address}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 ))}
             </div>
-            <button onClick={() => setIsModalOpen(true)} className="fixed bottom-8 right-6 z-20 p-4 bg-primaryColor text-white rounded-full shadow-xl hover:bg-green-700 active:scale-90"><Plus size={28} strokeWidth={2.5} /></button>
+            
+            {/* Floating Action Button (Add Customer) */}
+            <button 
+                onClick={() => setIsModalOpen(true)} 
+                className={`fixed bottom-8 right-6 z-20 p-4 ${primaryAccentBg} text-white rounded-full shadow-xl shadow-slate-900/30 hover:bg-slate-800 active:scale-90 transition-all`}
+            >
+                <Plus size={28} strokeWidth={2.5} />
+            </button>
+            
+            {/* Add Customer Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
-                        <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50"><h2 className="text-lg font-bold text-gray-800">Add Customer</h2><button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-gray-200 rounded-full"><X size={22} /></button></div>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+                            <h2 className="text-lg font-bold text-gray-800">Add Customer</h2>
+                            <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-gray-200 rounded-full"><X size={22} /></button>
+                        </div>
                         <form onSubmit={handleCreate} className="p-6 space-y-4">
-                            <input autoFocus type="text" placeholder="Name *" className="w-full p-3 border rounded-xl outline-none" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-                            <input type="tel" placeholder="Number" className="w-full p-3 border rounded-xl outline-none" value={formData.number} onChange={e => setFormData({...formData, number: e.target.value})} />
-                            <textarea placeholder="Address" className="w-full p-3 border rounded-xl outline-none resize-none" rows="2" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
-                            <button disabled={isCreating} className="w-full py-3.5 bg-primaryColor text-white font-bold rounded-xl flex justify-center items-center gap-2">{isCreating ? <Loader2 className="animate-spin"/> : "Create & Continue"}</button>
+                            <input autoFocus type="text" placeholder="Name *" className={`w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 ${primaryAccentRing}`} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                            <input type="tel" placeholder="Number" className={`w-full p-3 border border-gray-300 rounded-xl outline-none focus:ring-2 ${primaryAccentRing}`} value={formData.number} onChange={e => setFormData({...formData, number: e.target.value})} />
+                            <textarea placeholder="Address" className={`w-full p-3 border border-gray-300 rounded-xl outline-none resize-none focus:ring-2 ${primaryAccentRing}`} rows="2" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
+                            <button disabled={isCreating} className={`w-full py-3.5 ${primaryAccentBg} text-white font-bold rounded-xl flex justify-center items-center gap-2 hover:bg-slate-800 transition-colors`}>
+                                {isCreating ? <Loader2 className="animate-spin" size={20}/> : "Create & Continue"}
+                            </button>
                         </form>
                     </div>
                 </div>

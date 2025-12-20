@@ -135,8 +135,8 @@ export const updateUserDetails = async (req, res) => {
                         label: p.label,
                         unit: p.unit,
                         sellingPrice: p.sellingPrice,
-                        costPrice: 0,
-                        wholesalePrice: 0,
+                        costPrice: p.costPrice,
+                        wholesalePrice: p.wholesalePrice,
                         type: 'number'
                     }));
 
