@@ -1,0 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import "tailwindcss";
+
+* { font-family: "Outfit", sans-serif; }
+
+/* body { @apply bg-slate-50 text-slate-900; } */
+
+/* Reusing your custom classes */
+/* .btn-primary { @apply bg-slate-900 text-white font-bold rounded-xl shadow-lg shadow-slate-900/20 active:scale-95 transition-all; }
+.card { @apply bg-white p-6 rounded-4xl border border-slate-100 shadow-sm; } */
